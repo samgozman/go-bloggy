@@ -1,0 +1,7 @@
+package: client
+generate:
+  echo-server: true
+  client: true # Client specifies whether to generate client boilerplate
+  models: true # Models specifies whether to generate type definitions
+  embedded-spec: true # Embed the swagger spec into the generated code
+output: client.gen.go
