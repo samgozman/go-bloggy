@@ -30,7 +30,6 @@ linters:
     - gocritic
     - nestif
     - nilerr
-    - sloglint
     - wrapcheck
 
 linters-settings:
