@@ -1,0 +1,7 @@
+# Ignore everything
+**
+
+# Allow Go specific files and directories
+!go.mod
+!go.sum
+!**/*.go
