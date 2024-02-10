@@ -22,3 +22,6 @@ go.work
 
 # IDE files
 .idea/
+
+# Output of the go coverage tool
+coverage.txt

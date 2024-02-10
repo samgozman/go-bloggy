@@ -6,6 +6,10 @@ lint:
 test:
 	go test -v ./... -race
 
+# Test go files with coverage report
+test-coverage:
+	go test -v ./... -race -coverprofile=coverage.txt -covermode=atomic
+
 # Generate go files (api)
 generate:
 	go generate ./...

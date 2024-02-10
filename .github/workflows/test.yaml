@@ -1,0 +1,42 @@
+name: Tests and coverage
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+
+  unit_test_go:
+    name: Run tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.0
+
+      - name: Set up golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+
+      - name: Get Go dependencies
+        run: go mod download
+
+      - name: Generate code
+        run: make generate
+
+      - name: Lint check with golangci-lint
+        run: make lint
+
+      - name: Run unit tests with coverage
+        run: make test-coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
