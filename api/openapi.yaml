@@ -21,8 +21,81 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthCheckResponse"
+  /login/github/authorize:
+    post:
+      summary: Authorize with GitHub
+      description: |
+        Exchange a GitHub code (from API
+        GET `https://github.com/login/oauth/authorize?client_id=&redirect_uri=`
+        for a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GitHubAuthRequestBody"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWTToken"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '401':
+          description: Unauthorized error if the user is not allowed to access the admin panel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+  /login/refresh:
+    post:
+      summary: Refresh the JWT token
+      description: Refresh the JWT token if it's expired
+      headers:
+        Authorization:
+          description: The JWT token
+          required: true
+          schema:
+            type: string
+            format: bearer
+            example: Bearer <token>
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWTToken"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '401':
+          description: Unauthorized error if the user is not allowed to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
 components:
   schemas:
+    RequestError:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "error_code"
+        message:
+          type: string
+          example: "Error message"
+      required: [ "code", "message" ]
     HealthCheckResponse:
       type: object
       properties:
@@ -30,3 +103,17 @@ components:
           type: string
           example: "OK"
       required: [ "status" ]
+    GitHubAuthRequestBody:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "1234567890abcdef"
+      required: [ "code" ]
+    JWTToken:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "jwt; Path=/; HttpOnly; Secure"
+      required: [ "token" ]

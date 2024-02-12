@@ -20,10 +20,29 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// GitHubAuthRequestBody defines model for GitHubAuthRequestBody.
+type GitHubAuthRequestBody struct {
+	Code string `json:"code"`
+}
+
 // HealthCheckResponse defines model for HealthCheckResponse.
 type HealthCheckResponse struct {
 	Status string `json:"status"`
 }
+
+// JWTToken defines model for JWTToken.
+type JWTToken struct {
+	Token string `json:"token"`
+}
+
+// RequestError defines model for RequestError.
+type RequestError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// PostLoginGithubAuthorizeJSONRequestBody defines body for PostLoginGithubAuthorize for application/json ContentType.
+type PostLoginGithubAuthorizeJSONRequestBody = GitHubAuthRequestBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -100,10 +119,54 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 type ClientInterface interface {
 	// GetHealth request
 	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostLoginGithubAuthorizeWithBody request with any body
+	PostLoginGithubAuthorizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostLoginGithubAuthorize(ctx context.Context, body PostLoginGithubAuthorizeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostLoginRefresh request
+	PostLoginRefresh(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHealthRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostLoginGithubAuthorizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostLoginGithubAuthorizeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostLoginGithubAuthorize(ctx context.Context, body PostLoginGithubAuthorizeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostLoginGithubAuthorizeRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostLoginRefresh(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostLoginRefreshRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +197,73 @@ func NewGetHealthRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostLoginGithubAuthorizeRequest calls the generic PostLoginGithubAuthorize builder with application/json body
+func NewPostLoginGithubAuthorizeRequest(server string, body PostLoginGithubAuthorizeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostLoginGithubAuthorizeRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostLoginGithubAuthorizeRequestWithBody generates requests for PostLoginGithubAuthorize with any type of body
+func NewPostLoginGithubAuthorizeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/login/github/authorize")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostLoginRefreshRequest generates requests for PostLoginRefresh
+func NewPostLoginRefreshRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/login/refresh")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -186,6 +316,14 @@ func WithBaseURL(baseURL string) ClientOption {
 type ClientWithResponsesInterface interface {
 	// GetHealthWithResponse request
 	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
+
+	// PostLoginGithubAuthorizeWithBodyWithResponse request with any body
+	PostLoginGithubAuthorizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostLoginGithubAuthorizeResponse, error)
+
+	PostLoginGithubAuthorizeWithResponse(ctx context.Context, body PostLoginGithubAuthorizeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostLoginGithubAuthorizeResponse, error)
+
+	// PostLoginRefreshWithResponse request
+	PostLoginRefreshWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostLoginRefreshResponse, error)
 }
 
 type GetHealthResponse struct {
@@ -210,6 +348,54 @@ func (r GetHealthResponse) StatusCode() int {
 	return 0
 }
 
+type PostLoginGithubAuthorizeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *JWTToken
+	JSON400      *RequestError
+	JSON401      *RequestError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostLoginGithubAuthorizeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostLoginGithubAuthorizeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostLoginRefreshResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *JWTToken
+	JSON400      *RequestError
+	JSON401      *RequestError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostLoginRefreshResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostLoginRefreshResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetHealthWithResponse request returning *GetHealthResponse
 func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
 	rsp, err := c.GetHealth(ctx, reqEditors...)
@@ -217,6 +403,32 @@ func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEdit
 		return nil, err
 	}
 	return ParseGetHealthResponse(rsp)
+}
+
+// PostLoginGithubAuthorizeWithBodyWithResponse request with arbitrary body returning *PostLoginGithubAuthorizeResponse
+func (c *ClientWithResponses) PostLoginGithubAuthorizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostLoginGithubAuthorizeResponse, error) {
+	rsp, err := c.PostLoginGithubAuthorizeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostLoginGithubAuthorizeResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostLoginGithubAuthorizeWithResponse(ctx context.Context, body PostLoginGithubAuthorizeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostLoginGithubAuthorizeResponse, error) {
+	rsp, err := c.PostLoginGithubAuthorize(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostLoginGithubAuthorizeResponse(rsp)
+}
+
+// PostLoginRefreshWithResponse request returning *PostLoginRefreshResponse
+func (c *ClientWithResponses) PostLoginRefreshWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostLoginRefreshResponse, error) {
+	rsp, err := c.PostLoginRefresh(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostLoginRefreshResponse(rsp)
 }
 
 // ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
@@ -245,11 +457,97 @@ func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
 	return response, nil
 }
 
+// ParsePostLoginGithubAuthorizeResponse parses an HTTP response from a PostLoginGithubAuthorizeWithResponse call
+func ParsePostLoginGithubAuthorizeResponse(rsp *http.Response) (*PostLoginGithubAuthorizeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostLoginGithubAuthorizeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest JWTToken
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest RequestError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest RequestError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostLoginRefreshResponse parses an HTTP response from a PostLoginRefreshWithResponse call
+func ParsePostLoginRefreshResponse(rsp *http.Response) (*PostLoginRefreshResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostLoginRefreshResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest JWTToken
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest RequestError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest RequestError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Health check
 	// (GET /health)
 	GetHealth(ctx echo.Context) error
+	// Authorize with GitHub
+	// (POST /login/github/authorize)
+	PostLoginGithubAuthorize(ctx echo.Context) error
+	// Refresh the JWT token
+	// (POST /login/refresh)
+	PostLoginRefresh(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -263,6 +561,24 @@ func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetHealth(ctx)
+	return err
+}
+
+// PostLoginGithubAuthorize converts echo context to params.
+func (w *ServerInterfaceWrapper) PostLoginGithubAuthorize(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostLoginGithubAuthorize(ctx)
+	return err
+}
+
+// PostLoginRefresh converts echo context to params.
+func (w *ServerInterfaceWrapper) PostLoginRefresh(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostLoginRefresh(ctx)
 	return err
 }
 
@@ -295,20 +611,29 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/health", wrapper.GetHealth)
+	router.POST(baseURL+"/login/github/authorize", wrapper.PostLoginGithubAuthorize)
+	router.POST(baseURL+"/login/refresh", wrapper.PostLoginRefresh)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/5RSzW4UPRB8lVZ/n8RlWE+CxGFuIYrCKoEgwg04eDy9M078h92zsETz7qi9s6BIXLhY",
-	"JavKXe6qJzTRpxgocMHuCYuZyOsK35J2PF1OZB4/UkkxFJLrlGOizJaOfNY8V0Q/tE+OsMO7G2yQD0lw",
-	"4WzDiMvSYKZvs800YPf5JPv6mxf7BzKMixBt2EV50cTA2rDAoL2w7rWH6/jT64ANztlhhxNzKp1So+Vp",
-	"7jcmelW0HytJjfFl7+I4HnBpcKBisk1sY8AOL6BY8Qtf5rY9fw3OjhN/Jzmh1+aRwgC7mGGgPTn5cXkB",
-	"csagHcijBRt01tC6ltXhu+0nuF1v/82i6l3sldc2qNvt5dX7+ysxzZbrTq8jvKk0uPiwxQb3lMvxI+2m",
-	"3ZwJNSYKOlns8NXmbNNig0nzVLNRU81S4Eh1oc+XUUMGuwOeCArlPWWwBeYEOgyQ5xAkxDoia9FsB/FE",
-	"fOwISrjHhtRx5217yo9CHadTctZUqXooMvNUNUH/Z9phh/+pP11UaxHV31pYW/L8B3c3tWNl9l7nA3Zr",
-	"e8GIUATLrwAAAP//syNF9+oCAAA=",
+	"H4sIAAAAAAAC/+xV32/bNhD+Vw63Ad2DZjlJ120KgiEpDCdttgSJhz4sQ0pRZ4mJRKrkKYlb+H8fSMm/",
+	"FbQDumEPe7EJ8njfx7vvO31CaaraaNLsMPmEThZUibAcKz5t0uOGiyv60JDjE5PN/EFtTU2WFYUwaTLy",
+	"//QkqrokTHBv/+DlD69+/OnnoUhlRlOMkGe1P3Fslc5xPo/Q0odGWcow+aNN8ecyyqR3JBnnEZ6SKLl4",
+	"XZC8vyJXG+1ol4BjwY3bpHDx9rOg3bU+2DfvJhNzT3oXixfbK6i7Rz6ES8HFUXwIp8z1hS5nh3BNsrH0",
+	"WRZtwj4SXdFH1hr7JVUnH3gb9ndAI6zIOZFvXQm5YXH0RV1aZdrl7C8oPTUtP81Csl9qUfmoa1HB2Hys",
+	"hMYIG1tiggVz7ZI4zhUXTTqQpoqdqPIQFOfm+7Q0eT7z9DNy0qqaldGY4DE45Z8AN81wuP8KSpUX/Ej+",
+	"F1Ih70lnMDUWMnqg0lfNvQD/a7QowSd1GGGpJHV66hj+ejaB827371GM09KkcSWUjs/PXo9+ux550qw4",
+	"lHls4CSEwfHlGUb4QNa1DxkOhoM9H2pq0qJWmODBYG8wxAhrwUXodFwEE/hlTqGgm8UI7gA1BS4IHNkH",
+	"sqAcNDUInYFttPbNDBBW+DtnmedE3JoLfZNbawW4/eFw0T/SAU7UdalkuBrfOaNXY8KvvrU0xQS/iVdz",
+	"JO6GSNxn36CSzRdcvA1ac01VCTvDpLM9SH8xHMWlyZXumhCLhgtj1cd2FhjXU5TRkyyEzgkEtGMMvHrh",
+	"u6k1le/CjR6PJvC+p7stkvEYK6BfZKlI863KjlrJWcqUJcm3jVVH72+0V5uAN+8mEAx9o3cKfmkcn/vc",
+	"44B1vHxDa7K18fpVSt8/vOebnmbb0Pwf7P9yjj7T9AhffkW0jYHZg3giMuhiWui9fw36d72UUgZhUC8M",
+	"27jWrtowiLI0j5QBGxBSknMhQmSV0lALTeWWTZYagkfFRSf0db9YmlpyxfM2uWoDAs5SvJ6a4hcO6KkO",
+	"OomwIJGRDfpYgIo2xXbGyXom3BZbtFbP1WfohIQlG4b5gWz945feGlNjK8GYYBpier5R82eN1j0O/xf4",
+	"f1bgW4LulaOHm/8VAAD//2BYFLmnCgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
