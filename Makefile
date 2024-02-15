@@ -1,6 +1,6 @@
 # Lint go files
 lint:
-	golangci-lint run
+	golangci-lint run -v
 
 # Test go files
 test:
