@@ -25,7 +25,7 @@ func NewService(signKey string) *Service {
 }
 
 // CreateTokenString creates a JWT token string with the given sign key and expiration time.
-func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (string, error) {
+func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error) {
 	if expiresAt.Before(time.Now()) {
 		return "", fmt.Errorf("expiresAt must be in the future")
 	}
@@ -52,7 +52,7 @@ func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (string,
 }
 
 // ParseTokenString parses a JWT token string and returns User ID.
-func (s *Service) ParseTokenString(tokenString string) (string, error) {
+func (s *Service) ParseTokenString(tokenString string) (userID string, err error) {
 	keyByte := []byte(s.signKey)
 
 	token, err := jwtgo.ParseWithClaims(tokenString, &Claims{}, func(token *jwtgo.Token) (interface{}, error) {

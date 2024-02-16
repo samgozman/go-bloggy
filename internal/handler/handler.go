@@ -7,6 +7,7 @@ import (
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -83,6 +84,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 // PostLoginRefresh handles the request to refresh the JWT token.
 func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 	token := ctx.Request().Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
 		return ctx.JSON(http.StatusUnauthorized, client.RequestError{
 			Code:    errForbidden,
@@ -90,13 +92,25 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: parse token and get data
-	// TODO: Check data in DB
-	// TODO: Check if GitHub token from DB is still valid (if possible)
-	// TODO: Generate new JWT token
+	userID, err := s.jwtService.ParseTokenString(token)
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, client.RequestError{
+			Code:    errForbidden,
+			Message: "Invalid token",
+		})
+	}
+
+	// TODO: Store JWT expiration time in config
+	newToken, err := s.jwtService.CreateTokenString(userID, time.Now().Add(time.Minute))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
+			Code:    errCreateToken,
+			Message: "Error while creating JWT token",
+		})
+	}
 
 	return ctx.JSON(http.StatusOK, client.JWTToken{
-		Token: "",
+		Token: newToken,
 	})
 }
 
@@ -107,6 +121,6 @@ type githubService interface {
 }
 
 type jwtService interface {
-	CreateTokenString(userID string, expiresAt time.Time) (string, error)
-	ParseTokenString(tokenString string) (string, error)
+	CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error)
+	ParseTokenString(tokenString string) (userID string, err error)
 }

@@ -87,6 +87,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
+		mockGithubService.AssertExpectations(t)
+		mockJwtService.AssertExpectations(t)
 
 		var body client.JWTToken
 		err := res.UnmarshalBodyToObject(&body)
@@ -138,6 +140,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
+		mockGithubService.AssertExpectations(t)
 
 		var body client.RequestError
 		err := res.UnmarshalBodyToObject(&body)
@@ -170,6 +173,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
+		mockGithubService.AssertExpectations(t)
 
 		var body client.RequestError
 		err := res.UnmarshalBodyToObject(&body)
@@ -229,6 +233,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
+		mockGithubService.AssertExpectations(t)
+		mockJwtService.AssertExpectations(t)
 
 		var body client.RequestError
 		err := res.UnmarshalBodyToObject(&body)
@@ -241,7 +247,15 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 func Test_PostLoginRefresh(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		e, _, _ := registerHandlers()
+		e, _, mockJwtService := registerHandlers()
+
+		mockJwtService.
+			On("ParseTokenString", "token").
+			Return("123", nil)
+
+		mockJwtService.
+			On("CreateTokenString", "123", mock.Anything).
+			Return("someToken", nil)
 
 		res := testutil.
 			NewRequest().
@@ -250,14 +264,15 @@ func Test_PostLoginRefresh(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
+		mockJwtService.AssertExpectations(t)
 
 		var body client.JWTToken
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
-		assert.Equal(t, "", body.Token) // TODO: check token
+		assert.Equal(t, "someToken", body.Token)
 	})
 
-	t.Run("Forbidden", func(t *testing.T) {
+	t.Run("Forbidden Authorization header is required", func(t *testing.T) {
 		e, _, _ := registerHandlers()
 
 		res := testutil.NewRequest().Post("/login/refresh").GoWithHTTPHandler(t, e)
@@ -270,6 +285,58 @@ func Test_PostLoginRefresh(t *testing.T) {
 
 		assert.Equal(t, errForbidden, body.Code)
 		assert.Equal(t, "Authorization header is required", body.Message)
+	})
+
+	t.Run("JWTService ParseTokenString error", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers()
+
+		mockJwtService.
+			On("ParseTokenString", "token").
+			Return("", assert.AnError)
+
+		res := testutil.
+			NewRequest().
+			Post("/login/refresh").
+			WithJWSAuth("token").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusUnauthorized, res.Code())
+		mockJwtService.AssertExpectations(t)
+
+		var body client.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+
+		assert.Equal(t, errForbidden, body.Code)
+		assert.Equal(t, "Invalid token", body.Message)
+	})
+
+	t.Run("CreateTokenString error", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers()
+
+		mockJwtService.
+			On("ParseTokenString", "token").
+			Return("123", nil)
+
+		mockJwtService.
+			On("CreateTokenString", "123", mock.Anything).
+			Return("", assert.AnError)
+
+		res := testutil.
+			NewRequest().
+			Post("/login/refresh").
+			WithJWSAuth("token").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusInternalServerError, res.Code())
+		mockJwtService.AssertExpectations(t)
+
+		var body client.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+
+		assert.Equal(t, errCreateToken, body.Code)
+		assert.Equal(t, "Error while creating JWT token", body.Message)
 	})
 }
 
