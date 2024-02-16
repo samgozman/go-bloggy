@@ -80,7 +80,7 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 	})
 }
 
-// githubService is an interface for the github.GitHub service.
+// githubService is an interface for the github.Service.
 type githubService interface {
 	ExchangeCodeForToken(ctx context.Context, code string) (string, error)
 	GetUserInfo(ctx context.Context, token string) (*github.UserInfo, error)

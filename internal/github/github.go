@@ -11,17 +11,17 @@ import (
 	"time"
 )
 
-// GitHub is a struct to hold GitHub OAuth configuration.
-type GitHub struct {
+// Service holds GitHub OAuth configuration.
+type Service struct {
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
 	OAuthAPIURL  string `json:"oauth_api_url"`
 	UserAPIURL   string `json:"user_api_url"`
 }
 
-// NewGitHub creates a new GitHub instance with the given client ID and client secret.
-func NewGitHub(clientID, clientSecret string) *GitHub {
-	return &GitHub{
+// NewService creates a new GitHub Service instance with the given client ID and client secret.
+func NewService(clientID, clientSecret string) *Service {
+	return &Service{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		OAuthAPIURL:  "https://github.com/login/oauth/access_token",
@@ -32,7 +32,7 @@ func NewGitHub(clientID, clientSecret string) *GitHub {
 // ExchangeCodeForToken exchanges the given code from
 // https://github.com/login/oauth/authorize?client_id=&redirect_uri=
 // for an access token.
-func (g *GitHub) ExchangeCodeForToken(ctx context.Context, code string) (string, error) {
+func (g *Service) ExchangeCodeForToken(ctx context.Context, code string) (string, error) {
 	formData := url.Values{
 		"client_id":     {g.ClientID},
 		"client_secret": {g.ClientSecret},
@@ -87,8 +87,8 @@ func (g *GitHub) ExchangeCodeForToken(ctx context.Context, code string) (string,
 	return result.AccessToken, nil
 }
 
-// GetUserInfo returns user info from GitHub using the given access token from GitHub.ExchangeCodeForToken.
-func (g *GitHub) GetUserInfo(ctx context.Context, token string) (*UserInfo, error) {
+// GetUserInfo returns user info from GitHub using the given access token from Service.ExchangeCodeForToken.
+func (g *Service) GetUserInfo(ctx context.Context, token string) (*UserInfo, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"GET",

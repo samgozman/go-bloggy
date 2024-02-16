@@ -10,7 +10,7 @@ import (
 )
 
 func Test_NewGitHub(t *testing.T) {
-	g := NewGitHub("dummyClientID", "dummyClientSecret")
+	g := NewService("dummyClientID", "dummyClientSecret")
 
 	assert.Equal(t, "dummyClientID", g.ClientID)
 	assert.Equal(t, "dummyClientSecret", g.ClientSecret)
@@ -43,7 +43,7 @@ func Test_GetUserInfo(t *testing.T) {
 			"type": "User",
 			"site_admin": false,
 			"name": "monalisa octocat",
-			"company": "GitHub",
+			"company": "Service",
 			"blog": "https://github.com/blog",
 			"location": "San Francisco",
 			"email": "octocat@github.com",
@@ -64,8 +64,8 @@ func Test_GetUserInfo(t *testing.T) {
 		// Close the server when test finishes
 		defer server.Close()
 
-		// Create a new GitHub instance
-		g := GitHub{
+		// Create a new Service instance
+		g := Service{
 			ClientID:     "dummyClientID",
 			ClientSecret: "dummyClientSecret",
 			UserAPIURL:   server.URL,
@@ -98,7 +98,7 @@ func Test_GetUserInfo(t *testing.T) {
 		assert.Equal(t, "User", userInfo.Type)
 		assert.Equal(t, false, userInfo.SiteAdmin)
 		assert.Equal(t, "monalisa octocat", userInfo.Name)
-		assert.Equal(t, "GitHub", userInfo.Company)
+		assert.Equal(t, "Service", userInfo.Company)
 		assert.Equal(t, "https://github.com/blog", userInfo.Blog)
 		assert.Equal(t, "San Francisco", userInfo.Location)
 		assert.Equal(t, "octocat@github.com", userInfo.Email)
@@ -127,8 +127,8 @@ func Test_GetUserInfo(t *testing.T) {
 		// Close the server when test finishes
 		defer server.Close()
 
-		// Create a new GitHub instance
-		g := GitHub{
+		// Create a new Service instance
+		g := Service{
 			ClientID:     "dummyClientID",
 			ClientSecret: "dummyClientSecret",
 			UserAPIURL:   server.URL,
@@ -158,7 +158,7 @@ func Test_ExchangeCodeForToken(t *testing.T) {
 		}))
 		defer server.Close()
 
-		g := GitHub{
+		g := Service{
 			ClientID:     "dummyClientID",
 			ClientSecret: "dummyClientSecret",
 			OAuthAPIURL:  server.URL,
@@ -179,7 +179,7 @@ func Test_ExchangeCodeForToken(t *testing.T) {
 		}))
 		defer server.Close()
 
-		g := GitHub{
+		g := Service{
 			ClientID:     "dummyClientID",
 			ClientSecret: "dummyClientSecret",
 			OAuthAPIURL:  server.URL,

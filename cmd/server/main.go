@@ -10,8 +10,8 @@ import (
 func main() {
 	e := echo.New()
 
-	// TODO: add GitHub clientID and clientSecret here from environment variables
-	g := github.NewGitHub("clientID", "clientSecret")
+	// TODO: add Service clientID and clientSecret here from environment variables
+	g := github.NewService("clientID", "clientSecret")
 	h := handler.NewHandler(g)
 
 	client.RegisterHandlers(e, h)
