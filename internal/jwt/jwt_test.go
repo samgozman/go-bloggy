@@ -8,23 +8,23 @@ import (
 )
 
 func Test_CreateTokenString(t *testing.T) {
+	service := NewService("testKey")
+
 	t.Run("OK", func(t *testing.T) {
-		signKey := "testKey1"
 		userID := "testUser1"
 		expiresAt := time.Now().Add(time.Hour)
 
-		token, err := CreateTokenString(signKey, userID, expiresAt)
+		token, err := service.CreateTokenString(userID, expiresAt)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 	})
 
 	t.Run("Invalid date", func(t *testing.T) {
-		signKey := "testKey2"
 		userID := "testUser2"
 		expiresAt := time.Now().Add(-time.Hour)
 
-		token, err := CreateTokenString(signKey, userID, expiresAt)
+		token, err := service.CreateTokenString(userID, expiresAt)
 
 		assert.Error(t, err)
 		assert.Empty(t, token)
@@ -32,42 +32,44 @@ func Test_CreateTokenString(t *testing.T) {
 }
 
 func Test_ParseTokenString(t *testing.T) {
+	service := NewService("testKey")
+
 	t.Run("OK", func(t *testing.T) {
-		signKey := "testKey3"
 		userID := "testUser3"
 		expiresAt := time.Now().Add(time.Hour)
 
-		token, err := CreateTokenString(signKey, userID, expiresAt)
+		token, err := service.CreateTokenString(userID, expiresAt)
 		assert.NoError(t, err)
 
-		parsedUserID, err := ParseTokenString(signKey, token)
+		parsedUserID, err := service.ParseTokenString(token)
 		assert.NoError(t, err)
 		assert.Equal(t, userID, parsedUserID)
 	})
 
 	t.Run("invalid signKey", func(t *testing.T) {
-		token, err := CreateTokenString("testKey", "testUser", time.Now().Add(time.Hour))
+		token, err := service.CreateTokenString("testUser", time.Now().Add(time.Hour))
 		assert.NoError(t, err)
 
-		parsedUserID, err := ParseTokenString("invalidKey", token)
+		serviceInvalidKey := NewService("invalidKey")
+
+		parsedUserID, err := serviceInvalidKey.ParseTokenString(token)
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
 	})
 
 	t.Run("invalid token", func(t *testing.T) {
-		parsedUserID, err := ParseTokenString("testKey", "invalidToken")
+		parsedUserID, err := service.ParseTokenString("invalidToken")
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
 
-		parsedUserID, err = ParseTokenString("testKey", "")
+		parsedUserID, err = service.ParseTokenString("")
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
 	})
 
 	t.Run("expired token", func(t *testing.T) {
-		signKey := "testKey"
 		userID := "testUser"
-		keyByte := []byte(signKey)
+		keyByte := []byte(service.signKey)
 
 		claims := Claims{
 			userID,
@@ -83,8 +85,15 @@ func Test_ParseTokenString(t *testing.T) {
 		ss, err := token.SignedString(keyByte)
 		assert.NoError(t, err)
 
-		parsedUserID, err := ParseTokenString(signKey, ss)
+		parsedUserID, err := service.ParseTokenString(ss)
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
 	})
+}
+
+func Test_NewService(t *testing.T) {
+	service := NewService("testKey")
+	assert.Equal(t, "testKey", service.signKey)
+	assert.NotNil(t, service.CreateTokenString)
+	assert.NotNil(t, service.ParseTokenString)
 }

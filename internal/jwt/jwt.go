@@ -12,13 +12,25 @@ type Claims struct {
 	jwtgo.RegisteredClaims
 }
 
+// Service for creating and parsing JWT tokens.
+type Service struct {
+	signKey string // signKey is the key used to sign the JWT token.
+}
+
+// NewService creates a new JWT Service with the given sign key.
+func NewService(signKey string) *Service {
+	return &Service{
+		signKey: signKey,
+	}
+}
+
 // CreateTokenString creates a JWT token string with the given sign key and expiration time.
-func CreateTokenString(signKey, userID string, expiresAt time.Time) (string, error) {
+func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (string, error) {
 	if expiresAt.Before(time.Now()) {
 		return "", fmt.Errorf("expiresAt must be in the future")
 	}
 
-	keyByte := []byte(signKey)
+	keyByte := []byte(s.signKey)
 
 	claims := Claims{
 		userID,
@@ -40,8 +52,8 @@ func CreateTokenString(signKey, userID string, expiresAt time.Time) (string, err
 }
 
 // ParseTokenString parses a JWT token string and returns User ID.
-func ParseTokenString(signKey, tokenString string) (string, error) {
-	keyByte := []byte(signKey)
+func (s *Service) ParseTokenString(tokenString string) (string, error) {
+	keyByte := []byte(s.signKey)
 
 	token, err := jwtgo.ParseWithClaims(tokenString, &Claims{}, func(token *jwtgo.Token) (interface{}, error) {
 		return keyByte, nil
