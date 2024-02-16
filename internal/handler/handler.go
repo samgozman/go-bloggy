@@ -6,17 +6,21 @@ import (
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // Handler for the service API endpoints.
 type Handler struct {
 	githubService githubService
+	jwtService    jwtService
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(githubService githubService) *Handler {
+func NewHandler(g githubService, j jwtService) *Handler {
 	return &Handler{
-		githubService: githubService,
+		githubService: g,
+		jwtService:    j,
 	}
 }
 
@@ -52,11 +56,27 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: Generate JWT token
-	// TODO: Save data to DB (or update if exists)
+	user, err := s.githubService.GetUserInfo(ctx.Request().Context(), token)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
+			Code:    errGetUserInfo,
+			Message: "Error while getting user info from GitHub",
+		})
+	}
+
+	// TODO: Store JWT expiration time in config
+	jwtToken, err := s.jwtService.CreateTokenString(strconv.Itoa(user.ID), time.Now().Add(time.Minute))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
+			Code:    errCreateToken,
+			Message: "Error while creating JWT token",
+		})
+	}
+
+	// TODO: Save token & user data to DB (or update if exists)
 
 	return ctx.JSON(http.StatusOK, ctx.JSON(http.StatusOK, client.JWTToken{
-		Token: token,
+		Token: jwtToken,
 	}))
 }
 
@@ -84,4 +104,9 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 type githubService interface {
 	ExchangeCodeForToken(ctx context.Context, code string) (string, error)
 	GetUserInfo(ctx context.Context, token string) (*github.UserInfo, error)
+}
+
+type jwtService interface {
+	CreateTokenString(userID string, expiresAt time.Time) (string, error)
+	ParseTokenString(tokenString string) (string, error)
 }
