@@ -6,5 +6,5 @@ const (
 	errForbidden          = "ERR_FORBIDDEN"
 	errExchangeCode       = "ERR_EXCHANGE_CODE"
 	errGetUserInfo        = "ERR_GET_USER_INFO"
-	errCreateToken        = "ERR_CREATE_TOKEN"
+	errCreateToken        = "ERR_CREATE_TOKEN" //nolint:gosec
 )
