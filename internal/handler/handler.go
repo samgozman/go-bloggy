@@ -1,17 +1,23 @@
 package handler
 
 import (
+	"context"
 	"github.com/labstack/echo/v4"
+	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
 )
 
 // Handler for the service API endpoints.
-type Handler struct{}
+type Handler struct {
+	githubService githubService
+}
 
 // NewHandler creates a new Handler.
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(githubService githubService) *Handler {
+	return &Handler{
+		githubService: githubService,
+	}
 }
 
 // GetHealth returns health status of the service.
@@ -38,15 +44,20 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: request to github
+	token, err := s.githubService.ExchangeCodeForToken(ctx.Request().Context(), req.Code)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
+			Code:    errExchangeCode,
+			Message: "Error while exchanging GitHub code for token",
+		})
+	}
+
 	// TODO: Generate JWT token
 	// TODO: Save data to DB (or update if exists)
 
-	return ctx.JSON(http.StatusOK, client.PostLoginGithubAuthorizeResponse{
-		JSON200: &client.JWTToken{
-			Token: "",
-		},
-	})
+	return ctx.JSON(http.StatusOK, ctx.JSON(http.StatusOK, client.JWTToken{
+		Token: token,
+	}))
 }
 
 // PostLoginRefresh handles the request to refresh the JWT token.
@@ -67,4 +78,10 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, client.JWTToken{
 		Token: "",
 	})
+}
+
+// githubService is an interface for the github.GitHub service.
+type githubService interface {
+	ExchangeCodeForToken(ctx context.Context, code string) (string, error)
+	GetUserInfo(ctx context.Context, token string) (*github.UserInfo, error)
 }
