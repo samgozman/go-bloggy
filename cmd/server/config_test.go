@@ -10,12 +10,14 @@ func TestNewConfigFromEnv(t *testing.T) {
 	t.Setenv("GITHUB_CLIENT_ID", "test_id")
 	t.Setenv("GITHUB_CLIENT_SECRET", "test_secret")
 	t.Setenv("JWT_SECRET_KEY", "test_jwt")
+	t.Setenv("PORT", "3000")
 
 	config := NewConfigFromEnv()
 
 	assert.Equal(t, "test_id", config.GithubClientID)
 	assert.Equal(t, "test_secret", config.GithubClientSecret)
 	assert.Equal(t, "test_jwt", config.JWTSecretKey)
+	assert.Equal(t, "3000", config.Port)
 }
 
 func TestGetEnvOrPanic(t *testing.T) {

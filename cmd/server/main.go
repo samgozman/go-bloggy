@@ -15,5 +15,5 @@ func main() {
 	h := handler.NewHandler(g, j)
 	e := echo.New()
 	client.RegisterHandlers(e, h)
-	e.Logger.Fatal(e.Start(":80"))
+	e.Logger.Fatal(e.Start(":" + c.Port))
 }
