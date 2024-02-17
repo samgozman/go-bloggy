@@ -9,14 +9,11 @@ import (
 )
 
 func main() {
-	e := echo.New()
-
-	// TODO: add Service clientID and clientSecret here from environment variables
-	g := github.NewService("clientID", "clientSecret")
-	j := jwt.NewService("testKey")
+	c := NewConfigFromEnv()
+	g := github.NewService(c.GithubClientID, c.GithubClientSecret)
+	j := jwt.NewService(c.JWTSecretKey)
 	h := handler.NewHandler(g, j)
-
+	e := echo.New()
 	client.RegisterHandlers(e, h)
-
 	e.Logger.Fatal(e.Start(":80"))
 }
