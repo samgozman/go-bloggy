@@ -13,7 +13,7 @@ func NewConfigFromEnv() *Config {
 	return &Config{
 		GithubClientID:     getEnvOrPanic("GITHUB_CLIENT_ID"),
 		GithubClientSecret: getEnvOrPanic("GITHUB_CLIENT_SECRET"),
-		JWTSecretKey:       getEnvOrPanic("JWT_SECRET"),
+		JWTSecretKey:       getEnvOrPanic("JWT_SECRET_KEY"),
 	}
 }
 

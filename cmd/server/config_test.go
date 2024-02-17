@@ -9,7 +9,7 @@ import (
 func TestNewConfigFromEnv(t *testing.T) {
 	t.Setenv("GITHUB_CLIENT_ID", "test_id")
 	t.Setenv("GITHUB_CLIENT_SECRET", "test_secret")
-	t.Setenv("JWT_SECRET", "test_jwt")
+	t.Setenv("JWT_SECRET_KEY", "test_jwt")
 
 	config := NewConfigFromEnv()
 
