@@ -28,3 +28,7 @@ init : download env generate
 # Run local server without docker
 run:
 	go run cmd/server/main.go
+
+# Run via docker compose
+docker-run:
+	docker compose up --build
