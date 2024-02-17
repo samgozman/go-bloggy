@@ -1,3 +1,7 @@
+# Download go dependencies
+download:
+	go mod download
+
 # Lint go files
 lint:
 	golangci-lint run -v
@@ -13,6 +17,13 @@ test-coverage:
 # Generate go files (api)
 generate:
 	go generate ./...
+
+# Create copy .env.sample to .env if not exists
+env:
+	cp -n .env.sample .env || true
+
+# Initialize project
+init : download env generate
 
 # Run local server without docker
 run:

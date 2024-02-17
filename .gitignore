@@ -25,3 +25,5 @@ go.work
 
 # Output of the go coverage tool
 coverage.txt
+
+.env
