@@ -63,15 +63,6 @@ func (u *User) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
-func (u *User) BeforeUpdate(_ *gorm.DB) error {
-	err := u.Validate()
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrValidationFailed, mapGormError(err))
-	}
-	u.UpdatedAt = time.Now()
-	return nil
-}
-
 // Upsert inserts or updates the User data.
 func (db *UserDB) Upsert(ctx context.Context, user *User) error {
 	err := db.conn.
