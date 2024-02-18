@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/oapi-codegen/testutil"
+	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func (m *MockJWTService) ParseTokenString(token string) (string, error) {
 }
 
 func Test_GetHealth(t *testing.T) {
-	e, _, _ := registerHandlers()
+	e, _, _ := registerHandlers(t)
 
 	res := testutil.NewRequest().Get("/health").GoWithHTTPHandler(t, e)
 
@@ -58,7 +59,7 @@ func Test_GetHealth(t *testing.T) {
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		e, mockGithubService, mockJwtService := registerHandlers()
+		e, mockGithubService, mockJwtService := registerHandlers(t)
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -98,7 +99,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		e, _, _ := registerHandlers()
+		e, _, _ := registerHandlers(t)
 
 		rb, _ := json.Marshal(client.GitHubAuthRequestBody{
 			Code: "", // empty code
@@ -122,7 +123,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub ExchangeCodeForToken error", func(t *testing.T) {
-		e, mockGithubService, _ := registerHandlers()
+		e, mockGithubService, _ := registerHandlers(t)
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -151,7 +152,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub GetUserInfo error", func(t *testing.T) {
-		e, mockGithubService, _ := registerHandlers()
+		e, mockGithubService, _ := registerHandlers(t)
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -184,7 +185,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		e, _, _ := registerHandlers()
+		e, _, _ := registerHandlers(t)
 
 		res := testutil.
 			NewRequest().
@@ -204,7 +205,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("JWTService CreateTokenString error", func(t *testing.T) {
-		e, mockGithubService, mockJwtService := registerHandlers()
+		e, mockGithubService, mockJwtService := registerHandlers(t)
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -247,7 +248,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 func Test_PostLoginRefresh(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers()
+		e, _, mockJwtService := registerHandlers(t)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -273,7 +274,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("Forbidden Authorization header is required", func(t *testing.T) {
-		e, _, _ := registerHandlers()
+		e, _, _ := registerHandlers(t)
 
 		res := testutil.NewRequest().Post("/login/refresh").GoWithHTTPHandler(t, e)
 
@@ -288,7 +289,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("JWTService ParseTokenString error", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers()
+		e, _, mockJwtService := registerHandlers(t)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -312,7 +313,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("CreateTokenString error", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers()
+		e, _, mockJwtService := registerHandlers(t)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -340,14 +341,18 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 }
 
-func registerHandlers() (server *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
+func registerHandlers(t *testing.T) (server *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
+	conn, err := db.InitDatabase("handlers_test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create echo instance
 	e := echo.New()
-	h := NewHandler(g, j)
+	h := NewHandler(g, j, conn)
 	client.RegisterHandlers(e, h)
 
 	return e, g, j

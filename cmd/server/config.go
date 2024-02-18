@@ -3,10 +3,11 @@ package main
 import "os"
 
 type Config struct {
-	GithubClientID     string
-	GithubClientSecret string
-	JWTSecretKey       string
-	Port               string
+	GithubClientID     string // GithubClientID is the client ID for GitHub OAuth.
+	GithubClientSecret string // GithubClientSecret is the secret key for GitHub OAuth.
+	JWTSecretKey       string // JWTSecretKey is the secret key for JWT token creation.
+	Port               string // Port for server to listen on.
+	DSN                string // DSN - Database Source Name. For sqlite, it's the file path.
 }
 
 // NewConfigFromEnv creates a new Config.
@@ -16,6 +17,7 @@ func NewConfigFromEnv() *Config {
 		GithubClientSecret: getEnvOrPanic("GITHUB_CLIENT_SECRET"),
 		JWTSecretKey:       getEnvOrPanic("JWT_SECRET_KEY"),
 		Port:               getEnvOrPanic("PORT"),
+		DSN:                getEnvOrPanic("DSN"),
 	}
 }
 

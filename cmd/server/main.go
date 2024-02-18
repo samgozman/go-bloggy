@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/handler"
 	"github.com/samgozman/go-bloggy/internal/jwt"
@@ -9,11 +10,18 @@ import (
 )
 
 func main() {
-	c := NewConfigFromEnv()
-	g := github.NewService(c.GithubClientID, c.GithubClientSecret)
-	j := jwt.NewService(c.JWTSecretKey)
-	h := handler.NewHandler(g, j)
-	e := echo.New()
-	client.RegisterHandlers(e, h)
-	e.Logger.Fatal(e.Start(":" + c.Port))
+	config := NewConfigFromEnv()
+	dnConn, err := db.InitDatabase(config.DSN)
+	if err != nil {
+		panic(err)
+	}
+
+	ghService := github.NewService(config.GithubClientID, config.GithubClientSecret)
+	jwtService := jwt.NewService(config.JWTSecretKey)
+
+	apiHandler := handler.NewHandler(ghService, jwtService, dnConn)
+	server := echo.New()
+	client.RegisterHandlers(server, apiHandler)
+
+	server.Logger.Fatal(server.Start(":" + config.Port))
 }

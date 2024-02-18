@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/labstack/echo/v4"
+	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
@@ -15,13 +16,15 @@ import (
 type Handler struct {
 	githubService githubService
 	jwtService    jwtService
+	db            *db.Database
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(g githubService, j jwtService) *Handler {
+func NewHandler(g githubService, j jwtService, dbConn *db.Database) *Handler {
 	return &Handler{
 		githubService: g,
 		jwtService:    j,
+		db:            dbConn,
 	}
 }
 
