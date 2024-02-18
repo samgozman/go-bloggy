@@ -26,5 +26,7 @@ go.work
 # Output of the go coverage tool
 coverage.txt
 
+# Package files
 .env
 *.db
+.data/
