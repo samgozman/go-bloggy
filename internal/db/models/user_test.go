@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"os"
 	"testing"
 	"time"
 )
@@ -43,10 +44,13 @@ func TestUserDB(t *testing.T) {
 	db, e := NewTestDB("users_test.db")
 	assert.NoError(t, e)
 
-	// Delete table after the test
-	defer func() {
-		_ = db.Migrator().DropTable(&User{})
-	}()
+	t.Cleanup(func() {
+		// Clean up the database file after the test
+		err := os.Remove("users_test.db")
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
 	userDB := NewUserDB(db)
 

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"math/rand/v2"
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -66,6 +67,14 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
+
+	t.Cleanup(func() {
+		// Clean up the database file after the test
+		err := os.Remove("handlers_test.db")
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
 	t.Run("OK", func(t *testing.T) {
 		e, mockGithubService, mockJwtService := registerHandlers(conn)
