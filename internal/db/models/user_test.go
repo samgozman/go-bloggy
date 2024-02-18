@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"testing"
+	"time"
 )
 
 func NewTestDB(dsn string) (*gorm.DB, error) {
@@ -49,7 +50,7 @@ func TestUserDB(t *testing.T) {
 
 	userDB := NewUserDB(db)
 
-	t.Run("CreateUser", func(t *testing.T) {
+	t.Run("Upsert", func(t *testing.T) {
 		t.Run("should create user", func(t *testing.T) {
 			user := &User{
 				ExternalID: uuid.New().String(),
@@ -57,7 +58,7 @@ func TestUserDB(t *testing.T) {
 				AuthMethod: GitHubAuthMethod,
 			}
 
-			err := userDB.CreateUser(context.Background(), user)
+			err := userDB.Upsert(context.Background(), user)
 			assert.NoError(t, err)
 
 			// Check that the user was created
@@ -68,34 +69,45 @@ func TestUserDB(t *testing.T) {
 			assert.Equal(t, user.ExternalID, u.ExternalID)
 			assert.Equal(t, user.Login, u.Login)
 			assert.Equal(t, user.AuthMethod, u.AuthMethod)
-			assert.NotZero(t, u.CreatedAt)
-			assert.NotZero(t, u.UpdatedAt)
+			assert.NotZero(t, u.CreatedAt.In(time.Local))
+			assert.NotZero(t, u.UpdatedAt.In(time.Local))
 		})
 
-		t.Run("should return ErrDuplicate if user is duplicated", func(t *testing.T) {
-			user := &User{
-				ExternalID: uuid.New().String(),
-				Login:      uuid.New().String(),
-				AuthMethod: GitHubAuthMethod,
-			}
-
-			err := userDB.CreateUser(context.Background(), user)
+		t.Run("should update user", func(t *testing.T) {
+			ctx := context.Background()
+			u, err := testCreateUser(ctx, userDB.conn)
 			assert.NoError(t, err)
 
-			err = userDB.CreateUser(context.Background(), user)
+			u.Login = uuid.New().String()
+			err = userDB.Upsert(ctx, &u)
+			assert.NoError(t, err)
+
+			// Check that the user was updated
+			var user User
+			err = userDB.conn.First(&user, u.ID).Error
+			assert.NoError(t, err)
+			assert.Equal(t, u.ID, user.ID)
+			assert.Equal(t, u.ExternalID, user.ExternalID)
+			assert.Equal(t, u.Login, user.Login)
+			assert.Equal(t, u.AuthMethod, user.AuthMethod)
+			assert.Equal(t, u.CreatedAt.In(time.Local), user.CreatedAt.In(time.Local))
+			assert.NotEqual(t, u.UpdatedAt.In(time.Local), user.UpdatedAt.In(time.Local))
+		})
+
+		t.Run("should return error if user is invalid", func(t *testing.T) {
+			err := userDB.Upsert(context.Background(), &User{})
 			assert.Error(t, err)
-			fmt.Printf("Error: %v\n", err)
-			assert.ErrorIs(t, err, ErrDuplicate)
+			assert.ErrorIs(t, err, ErrValidationFailed)
 		})
 	})
 
-	t.Run("GetUserByExternalID", func(t *testing.T) {
+	t.Run("GetByExternalID", func(t *testing.T) {
 		t.Run("should get user by external id", func(t *testing.T) {
 			ctx := context.Background()
 			u, err := testCreateUser(ctx, userDB.conn)
 			assert.NoError(t, err)
 
-			user, err := userDB.GetUserByExternalID(ctx, u.ExternalID)
+			user, err := userDB.GetByExternalID(ctx, u.ExternalID)
 			assert.NoError(t, err)
 			assert.Equal(t, u.ID, user.ID)
 			assert.Equal(t, u.ExternalID, user.ExternalID)
@@ -104,20 +116,20 @@ func TestUserDB(t *testing.T) {
 		})
 
 		t.Run("should return ErrNotFound if user is not found", func(t *testing.T) {
-			user, err := userDB.GetUserByExternalID(context.Background(), uuid.New().String())
+			user, err := userDB.GetByExternalID(context.Background(), uuid.New().String())
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 			assert.Nil(t, user)
 		})
 	})
 
-	t.Run("GetUserByID", func(t *testing.T) {
+	t.Run("GetByID", func(t *testing.T) {
 		t.Run("should get user by id", func(t *testing.T) {
 			ctx := context.Background()
 			u, err := testCreateUser(ctx, userDB.conn)
 			assert.NoError(t, err)
 
-			user, err := userDB.GetUserByID(ctx, u.ID)
+			user, err := userDB.GetByID(ctx, u.ID)
 			assert.NoError(t, err)
 			assert.Equal(t, u.ID, user.ID)
 			assert.Equal(t, u.ExternalID, user.ExternalID)
@@ -126,7 +138,7 @@ func TestUserDB(t *testing.T) {
 		})
 
 		t.Run("should return ErrNotFound if user is not found", func(t *testing.T) {
-			user, err := userDB.GetUserByID(context.Background(), 0)
+			user, err := userDB.GetByID(context.Background(), 0)
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 			assert.Nil(t, user)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -54,7 +55,10 @@ func (u *User) BeforeCreate(_ *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrValidationFailed, err)
 	}
-	u.CreatedAt = time.Now()
+	// Because BeforeCreate can act as a hook for both Create and Update in Upsert operations
+	if u.CreatedAt.IsZero() {
+		u.CreatedAt = time.Now()
+	}
 	u.UpdatedAt = time.Now()
 	return nil
 }
@@ -68,8 +72,14 @@ func (u *User) BeforeUpdate(_ *gorm.DB) error {
 	return nil
 }
 
-func (db *UserDB) CreateUser(ctx context.Context, user *User) error {
-	err := db.conn.WithContext(ctx).Create(user).Error
+// Upsert inserts or updates the User data.
+func (db *UserDB) Upsert(ctx context.Context, user *User) error {
+	err := db.conn.
+		WithContext(ctx).
+		Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{"login"}),
+		}).
+		Create(user).Error
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToCreateUser, mapGormError(err))
 	}
@@ -77,7 +87,8 @@ func (db *UserDB) CreateUser(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (db *UserDB) GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
+// GetByExternalID returns the User data by the User.ExternalID.
+func (db *UserDB) GetByExternalID(ctx context.Context, externalID string) (*User, error) {
 	var user User
 	err := db.conn.WithContext(ctx).Where("external_id = ?", externalID).First(&user).Error
 	if err != nil {
@@ -87,7 +98,8 @@ func (db *UserDB) GetUserByExternalID(ctx context.Context, externalID string) (*
 	return &user, nil
 }
 
-func (db *UserDB) GetUserByID(ctx context.Context, id int) (*User, error) {
+// GetByID returns the User data by the User.ID.
+func (db *UserDB) GetByID(ctx context.Context, id int) (*User, error) {
 	var user User
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&user).Error
 	if err != nil {
