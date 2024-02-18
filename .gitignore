@@ -27,3 +27,4 @@ go.work
 coverage.txt
 
 .env
+*.db
