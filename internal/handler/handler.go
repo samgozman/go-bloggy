@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/db"
+	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
@@ -77,7 +78,17 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: Save token & user data to DB (or update if exists)
+	err = s.db.Models.Users.Upsert(ctx.Request().Context(), &models.User{
+		ExternalID: strconv.Itoa(user.ID),
+		Login:      user.Login,
+		AuthMethod: models.GitHubAuthMethod,
+	})
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
+			Code:    errCreateUser,
+			Message: "Error while creating user",
+		})
+	}
 
 	return ctx.JSON(http.StatusOK, ctx.JSON(http.StatusOK, client.JWTToken{
 		Token: jwtToken,
