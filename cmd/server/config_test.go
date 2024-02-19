@@ -12,6 +12,7 @@ func TestNewConfigFromEnv(t *testing.T) {
 	t.Setenv("JWT_SECRET_KEY", "test_jwt")
 	t.Setenv("PORT", "3000")
 	t.Setenv("DSN", "test_dsn")
+	t.Setenv("ADMINS_EXTERNAL_IDS", "test_admin1,test_admin2")
 
 	config := NewConfigFromEnv()
 
@@ -20,6 +21,7 @@ func TestNewConfigFromEnv(t *testing.T) {
 	assert.Equal(t, "test_jwt", config.JWTSecretKey)
 	assert.Equal(t, "3000", config.Port)
 	assert.Equal(t, "test_dsn", config.DSN)
+	assert.Equal(t, []string{"test_admin1", "test_admin2"}, config.AdminsExternalIDs)
 }
 
 func TestGetEnvOrPanic(t *testing.T) {
