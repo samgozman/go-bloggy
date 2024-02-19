@@ -50,7 +50,7 @@ func (m *MockJWTService) ParseTokenString(token string) (string, error) {
 }
 
 func Test_GetHealth(t *testing.T) {
-	e, _, _ := registerHandlers(nil)
+	e, _, _ := registerHandlers(nil, nil)
 
 	res := testutil.NewRequest().Get("/health").GoWithHTTPHandler(t, e)
 
@@ -77,10 +77,11 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("OK", func(t *testing.T) {
-		e, mockGithubService, mockJwtService := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, mockGithubService, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
-			ID:    rand.Int(),
+			ID:    adminExternalID,
 			Login: uuid.New().String(),
 		}
 		ghUserID := strconv.Itoa(ghUser.ID)
@@ -126,10 +127,11 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("should work for existing user", func(t *testing.T) {
-		e, mockGithubService, mockJwtService := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, mockGithubService, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
-			ID:    rand.Int(),
+			ID:    adminExternalID,
 			Login: uuid.New().String(),
 		}
 		ghUserID := strconv.Itoa(ghUser.ID)
@@ -177,7 +179,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		rb, _ := json.Marshal(client.GitHubAuthRequestBody{
 			Code: "", // empty code
@@ -201,7 +204,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub ExchangeCodeForToken error", func(t *testing.T) {
-		e, mockGithubService, _ := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, mockGithubService, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -230,7 +234,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub GetUserInfo error", func(t *testing.T) {
-		e, mockGithubService, _ := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, mockGithubService, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -263,7 +268,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		res := testutil.
 			NewRequest().
@@ -283,7 +289,8 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("JWTService CreateTokenString error", func(t *testing.T) {
-		e, mockGithubService, mockJwtService := registerHandlers(conn)
+		adminExternalID := rand.Int()
+		e, mockGithubService, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -292,12 +299,12 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		mockGithubService.
 			On("GetUserInfo", mock.Anything, "someToken").
 			Return(&github.UserInfo{
-				ID:    123,
+				ID:    adminExternalID,
 				Login: "testUser",
 			}, nil)
 
 		mockJwtService.
-			On("CreateTokenString", "123", mock.Anything).
+			On("CreateTokenString", strconv.Itoa(adminExternalID), mock.Anything).
 			Return("", assert.AnError)
 
 		rb, _ := json.Marshal(client.GitHubAuthRequestBody{
@@ -322,11 +329,47 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		assert.Equal(t, errCreateToken, body.Code)
 		assert.Equal(t, "Error while creating JWT token", body.Message)
 	})
+
+	t.Run("Auth forbidden for non-admin", func(t *testing.T) {
+		// Fake admin id
+		e, mockGithubService, _ := registerHandlers(conn, []string{"000000"})
+
+		mockGithubService.
+			On("ExchangeCodeForToken", mock.Anything, "123").
+			Return("someToken", nil)
+
+		mockGithubService.
+			On("GetUserInfo", mock.Anything, "someToken").
+			Return(&github.UserInfo{
+				ID:    rand.Int(),
+				Login: "testUser",
+			}, nil)
+
+		rb, _ := json.Marshal(client.GitHubAuthRequestBody{
+			Code: "123",
+		})
+
+		res := testutil.
+			NewRequest().
+			Post("/login/github/authorize").
+			WithHeader("Content-Type", "application/json").
+			WithBody(rb).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusForbidden, res.Code())
+
+		var body client.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+
+		assert.Equal(t, errForbidden, body.Code)
+		assert.Equal(t, "User is not an admin", body.Message)
+	})
 }
 
 func Test_PostLoginRefresh(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers(nil)
+		e, _, mockJwtService := registerHandlers(nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -352,7 +395,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("Forbidden Authorization header is required", func(t *testing.T) {
-		e, _, _ := registerHandlers(nil)
+		e, _, _ := registerHandlers(nil, nil)
 
 		res := testutil.NewRequest().Post("/login/refresh").GoWithHTTPHandler(t, e)
 
@@ -367,7 +410,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("JWTService ParseTokenString error", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers(nil)
+		e, _, mockJwtService := registerHandlers(nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -391,7 +434,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("CreateTokenString error", func(t *testing.T) {
-		e, _, mockJwtService := registerHandlers(nil)
+		e, _, mockJwtService := registerHandlers(nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -419,14 +462,14 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 }
 
-func registerHandlers(conn *db.Database) (server *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
+func registerHandlers(conn *db.Database, adminsIDs []string) (server *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
 
 	// Create echo instance
 	e := echo.New()
-	h := NewHandler(g, j, conn)
+	h := NewHandler(g, j, conn, adminsIDs)
 	client.RegisterHandlers(e, h)
 
 	return e, g, j

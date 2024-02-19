@@ -8,6 +8,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -15,17 +16,24 @@ import (
 
 // Handler for the service API endpoints.
 type Handler struct {
-	githubService githubService
-	jwtService    jwtService
-	db            *db.Database
+	githubService     githubService
+	jwtService        jwtService
+	db                *db.Database
+	adminsExternalIDs []string
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(g githubService, j jwtService, dbConn *db.Database) *Handler {
+func NewHandler(
+	g githubService,
+	j jwtService,
+	dbConn *db.Database,
+	adminsExternalIDs []string,
+) *Handler {
 	return &Handler{
-		githubService: g,
-		jwtService:    j,
-		db:            dbConn,
+		githubService:     g,
+		jwtService:        j,
+		db:                dbConn,
+		adminsExternalIDs: adminsExternalIDs,
 	}
 }
 
@@ -66,6 +74,14 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
 			Code:    errGetUserInfo,
 			Message: "Error while getting user info from GitHub",
+		})
+	}
+
+	// Check if user is an admin
+	if !slices.Contains(s.adminsExternalIDs, strconv.Itoa(user.ID)) {
+		return ctx.JSON(http.StatusForbidden, client.RequestError{
+			Code:    errForbidden,
+			Message: "User is not an admin",
 		})
 	}
 

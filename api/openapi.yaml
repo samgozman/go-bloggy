@@ -47,8 +47,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
-        '401':
-          description: Unauthorized error if the user is not allowed to access the admin panel
+        '403':
+          description: Forbidden error if the user is not allowed to access the admin panel
           content:
             application/json:
               schema:
