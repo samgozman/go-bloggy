@@ -19,7 +19,7 @@ func main() {
 	ghService := github.NewService(config.GithubClientID, config.GithubClientSecret)
 	jwtService := jwt.NewService(config.JWTSecretKey)
 
-	apiHandler := handler.NewHandler(ghService, jwtService, dnConn)
+	apiHandler := handler.NewHandler(ghService, jwtService, dnConn, config.AdminsExternalIDs)
 	server := echo.New()
 	client.RegisterHandlers(server, apiHandler)
 
