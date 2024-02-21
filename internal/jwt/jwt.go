@@ -27,7 +27,7 @@ func NewService(signKey string) *Service {
 // CreateTokenString creates a JWT token string with the given sign key and expiration time.
 func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error) {
 	if expiresAt.Before(time.Now()) {
-		return "", fmt.Errorf("expiresAt must be in the future")
+		return "", ErrExpiresAtMustBeInTheFuture
 	}
 
 	keyByte := []byte(s.signKey)
@@ -45,7 +45,7 @@ func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (jwtToke
 	token := jwtgo.NewWithClaims(jwtgo.SigningMethodHS256, claims)
 	ss, err := token.SignedString(keyByte)
 	if err != nil {
-		return "", fmt.Errorf("error signing token: %w", err)
+		return "", fmt.Errorf("%w: %w", ErrErrorSigningToken, err)
 	}
 
 	return ss, nil
@@ -57,12 +57,12 @@ func (s *Service) ParseTokenString(tokenString string) (userID string, err error
 		return []byte(s.signKey), nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("error parsing token: %w", err)
+		return "", fmt.Errorf("%w: %w", ErrErrorParsingToken, err)
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return "", fmt.Errorf("invalid token")
+		return "", ErrInvalidToken
 	}
 
 	return claims.UserID, nil

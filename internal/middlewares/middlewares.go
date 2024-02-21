@@ -27,13 +27,13 @@ func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
 			token := ctx.Request().Header.Get("Authorization")
 			token = strings.TrimPrefix(token, "Bearer ")
 			if token == "" {
-				return ctx.JSON(401, "Authorization header is required")
+				return ctx.JSON(401, ErrAuthHeaderRequired)
 			}
 
 			// parse token
 			userID, err := jwtService.ParseTokenString(token)
 			if err != nil {
-				return ctx.JSON(401, "Invalid token")
+				return ctx.JSON(401, ErrInvalidToken)
 			}
 
 			// add user ID to context

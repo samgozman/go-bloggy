@@ -28,6 +28,7 @@ func Test_CreateTokenString(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Empty(t, token)
+		assert.ErrorIs(t, err, ErrExpiresAtMustBeInTheFuture)
 	})
 }
 
@@ -55,6 +56,7 @@ func Test_ParseTokenString(t *testing.T) {
 		parsedUserID, err := serviceInvalidKey.ParseTokenString(token)
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
+		assert.ErrorIs(t, err, ErrErrorParsingToken)
 	})
 
 	t.Run("invalid token", func(t *testing.T) {
@@ -65,6 +67,7 @@ func Test_ParseTokenString(t *testing.T) {
 		parsedUserID, err = service.ParseTokenString("")
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
+		assert.ErrorIs(t, err, ErrErrorParsingToken)
 	})
 
 	t.Run("expired token", func(t *testing.T) {
@@ -88,6 +91,7 @@ func Test_ParseTokenString(t *testing.T) {
 		parsedUserID, err := service.ParseTokenString(ss)
 		assert.Error(t, err)
 		assert.Empty(t, parsedUserID)
+		assert.ErrorIs(t, err, ErrErrorParsingToken)
 	})
 }
 

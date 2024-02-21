@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -52,6 +53,7 @@ func Test_JWTAuth(t *testing.T) {
 		})(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+		assert.Equal(t, fmt.Sprintf("\"%s\"\n", ErrInvalidToken), rec.Body.String())
 	})
 
 	t.Run("no token", func(t *testing.T) {
@@ -64,5 +66,6 @@ func Test_JWTAuth(t *testing.T) {
 		})(ctx)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+		assert.Equal(t, fmt.Sprintf("\"%s\"\n", ErrAuthHeaderRequired), rec.Body.String())
 	})
 }
