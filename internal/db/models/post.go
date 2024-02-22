@@ -34,25 +34,18 @@ type Post struct {
 }
 
 func (p *Post) Validate() error {
-	if p.Slug == "" {
+	switch {
+	case p.Slug == "":
 		return ErrPostURLRequired
-	} else {
-		// Check if the slug is URL friendly
-		re := regexp.MustCompile(`^[a-z0-9-]+$`)
-		if !re.MatchString(p.Slug) {
-			return ErrPostInvalidSlug
-		}
-	}
-	if p.Title == "" {
+	case !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(p.Slug):
+		return ErrPostInvalidSlug
+	case p.Title == "":
 		return ErrPostTitleRequired
-	}
-	if p.Description == "" {
+	case p.Description == "":
 		return ErrPostDescriptionRequired
-	}
-	if p.Content == "" {
+	case p.Content == "":
 		return ErrPostContentRequired
-	}
-	if p.Keywords != "" {
+	case p.Keywords != "":
 		keywords := strings.Split(p.Keywords, ",")
 		for _, k := range keywords {
 			if k == "" {
@@ -60,6 +53,7 @@ func (p *Post) Validate() error {
 			}
 		}
 	}
+
 	return nil
 }
 
