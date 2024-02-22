@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"os"
 	"testing"
 	"time"
 )
@@ -18,7 +17,7 @@ func NewTestDB(dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&User{}, &Post{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
@@ -41,16 +40,8 @@ func testCreateUser(ctx context.Context, db *gorm.DB) (User, error) {
 }
 
 func TestUserDB(t *testing.T) {
-	db, e := NewTestDB("users_test.db")
+	db, e := NewTestDB("file::memory:?cache=shared")
 	assert.NoError(t, e)
-
-	t.Cleanup(func() {
-		// Clean up the database file after the test
-		err := os.Remove("users_test.db")
-		if err != nil {
-			t.Error(err)
-		}
-	})
 
 	userDB := NewUserDB(db)
 

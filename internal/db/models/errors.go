@@ -17,6 +17,13 @@ var (
 	ErrUserAuthMethodRequired = errors.New("ERR_USER_AUTH_METHOD_REQUIRED")
 	ErrFailedToCreateUser     = errors.New("ERR_FAILED_TO_CREATE_USER")
 	ErrFailedToGetUser        = errors.New("ERR_FAILED_TO_GET_USER")
+
+	ErrPostURLRequired         = errors.New("ERR_POST_URL_REQUIRED")
+	ErrPostTitleRequired       = errors.New("ERR_POST_TITLE_REQUIRED")
+	ErrPostDescriptionRequired = errors.New("ERR_POST_DESCRIPTION_REQUIRED")
+	ErrPostContentRequired     = errors.New("ERR_POST_CONTENT_REQUIRED")
+	ErrPostWrongKeywordsString = errors.New("ERR_POST_WRONG_KEYWORDS_STRING")
+	ErrPostInvalidSlug         = errors.New("ERR_POST_INVALID_SLUG")
 )
 
 // mapGormError maps gorm errors to application errors if possible.

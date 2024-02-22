@@ -10,6 +10,7 @@ import (
 // Models is a collection of all models in the database.
 type Models struct {
 	Users *models.UserDB
+	Posts *models.PostDB
 }
 
 // Database is the database connection.
@@ -26,7 +27,7 @@ func InitDatabase(dsn string) (*Database, error) {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Post{})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMigrateDatabase, err)
 	}
@@ -35,6 +36,7 @@ func InitDatabase(dsn string) (*Database, error) {
 		conn: db,
 		Models: &Models{
 			Users: models.NewUserDB(db),
+			Posts: models.NewPostDB(db),
 		},
 	}, nil
 }
