@@ -13,24 +13,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"math/rand/v2"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 )
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
-	conn, errDB := db.InitDatabase("handlers_test.db")
+	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
-
-	t.Cleanup(func() {
-		// Clean up the database file after the test
-		err := os.Remove("handlers_test.db")
-		if err != nil {
-			t.Error(err)
-		}
-	})
 
 	t.Run("OK", func(t *testing.T) {
 		adminExternalID := rand.Int()
