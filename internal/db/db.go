@@ -29,11 +29,11 @@ func InitDatabase(dsn string) (*Database, error) {
 	// Enable foreign key constraint enforcement in SQLite
 	sqliteDB, err := db.DB()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetDatabaseConnection, err)
 	}
 	_, err = sqliteDB.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrFailedToEnableForeignKeyConstraints, err)
 	}
 
 	// Migrate the schema
