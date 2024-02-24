@@ -29,6 +29,7 @@ type Post struct {
 	Description string `json:"description"`
 	Keywords    string `json:"keywords"` // Keywords are comma separated
 	Content     string `json:"content"`
+	UserID      int    `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -52,6 +53,8 @@ func (p *Post) Validate() error {
 				return ErrPostWrongKeywordsString
 			}
 		}
+	case p.UserID == 0:
+		return ErrPostUserIDRequired
 	}
 
 	return nil

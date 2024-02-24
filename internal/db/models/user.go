@@ -33,6 +33,7 @@ type User struct {
 	ExternalID string     `json:"external_id" gorm:"uniqueIndex"` // ExternalID is the ID of the user in the AuthMethod
 	Login      string     `json:"login"`
 	AuthMethod AuthMethod `json:"auth_method"` // AuthMethod is the method of authentication used by the user
+	Posts      []Post     `json:"posts" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

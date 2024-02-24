@@ -17,6 +17,16 @@ func NewTestDB(dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Enable foreign key constraint enforcement in SQLite
+	sqliteDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database connection: %w", err)
+	}
+	_, err = sqliteDB.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		return nil, fmt.Errorf("failed to enable foreign key constraints: %w", err)
+	}
+
 	err = db.AutoMigrate(&User{}, &Post{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)

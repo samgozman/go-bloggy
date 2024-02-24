@@ -26,6 +26,16 @@ func InitDatabase(dsn string) (*Database, error) {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToConnectDatabase, err)
 	}
 
+	// Enable foreign key constraint enforcement in SQLite
+	sqliteDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+	_, err = sqliteDB.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		return nil, err
+	}
+
 	// Migrate the schema
 	err = db.AutoMigrate(&models.User{}, &models.Post{})
 	if err != nil {

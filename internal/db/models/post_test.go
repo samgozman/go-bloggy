@@ -11,11 +11,22 @@ func TestPostDB(t *testing.T) {
 	db, err := NewTestDB("file::memory:?cache=shared")
 	assert.NoError(t, err)
 
+	// insert a user to db
+	user := &User{
+		ExternalID: uuid.New().String(),
+		Login:      uuid.New().String(),
+		AuthMethod: GitHubAuthMethod,
+	}
+
+	err = db.WithContext(context.Background()).Create(user).Error
+	assert.NoError(t, err)
+
 	postDB := NewPostDB(db)
 
 	t.Run("CreatePost", func(t *testing.T) {
 		t.Run("create a new post", func(t *testing.T) {
 			post := &Post{
+				UserID:      user.ID,
 				Slug:        uuid.New().String(),
 				Title:       "Test Title",
 				Description: "Test Description",
@@ -32,6 +43,7 @@ func TestPostDB(t *testing.T) {
 
 		t.Run("return error if slug is not unique", func(t *testing.T) {
 			post := &Post{
+				UserID:      user.ID,
 				Slug:        uuid.New().String(),
 				Title:       "Test Title",
 				Description: "Test Description",
@@ -48,6 +60,7 @@ func TestPostDB(t *testing.T) {
 
 		t.Run("return error if slug is not URL friendly", func(t *testing.T) {
 			post := &Post{
+				UserID:      user.ID,
 				Slug:        "Test Title with spaces",
 				Title:       "Test Title",
 				Description: "Test Description",
@@ -63,6 +76,7 @@ func TestPostDB(t *testing.T) {
 
 	t.Run("GetPostByURL", func(t *testing.T) {
 		anotherPost := &Post{
+			UserID:      user.ID,
 			Slug:        uuid.New().String(),
 			Title:       "Test Title 00",
 			Description: "Test Description",
@@ -70,6 +84,7 @@ func TestPostDB(t *testing.T) {
 		}
 
 		post := &Post{
+			UserID:      user.ID,
 			Slug:        uuid.New().String(),
 			Title:       "Test Title",
 			Description: "Test Description",
@@ -98,6 +113,7 @@ func TestPostDB(t *testing.T) {
 	t.Run("GetPosts", func(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			post := &Post{
+				UserID:      user.ID,
 				Slug:        uuid.New().String(),
 				Title:       "Test Title",
 				Description: "Test Description",
@@ -140,6 +156,7 @@ func TestPostDB(t *testing.T) {
 
 	t.Run("UpdatePost", func(t *testing.T) {
 		post := &Post{
+			UserID:      user.ID,
 			Slug:        uuid.New().String(),
 			Title:       "Test Title",
 			Description: "Test Description",

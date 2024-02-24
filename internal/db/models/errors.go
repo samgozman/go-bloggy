@@ -24,6 +24,7 @@ var (
 	ErrPostContentRequired     = errors.New("ERR_POST_CONTENT_REQUIRED")
 	ErrPostWrongKeywordsString = errors.New("ERR_POST_WRONG_KEYWORDS_STRING")
 	ErrPostInvalidSlug         = errors.New("ERR_POST_INVALID_SLUG")
+	ErrPostUserIDRequired      = errors.New("ERR_POST_USER_ID_REQUIRED")
 )
 
 // mapGormError maps gorm errors to application errors if possible.
