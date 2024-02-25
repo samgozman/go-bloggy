@@ -118,6 +118,7 @@ func TestPostDB(t *testing.T) {
 				Title:       "Test Title",
 				Description: "Test Description",
 				Content:     "Test Content",
+				Keywords:    "some",
 			}
 
 			err := postDB.Create(context.Background(), post)
@@ -129,9 +130,19 @@ func TestPostDB(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, 5, len(posts))
 
-			// check the order of the posts
 			for i := 0; i < len(posts)-1; i++ {
+				// check the order of the posts
 				assert.True(t, posts[i].CreatedAt.After(posts[i+1].CreatedAt))
+				assert.Equal(t, "Test Title", posts[i].Title)
+				assert.Equal(t, "Test Description", posts[i].Description)
+				assert.Equal(t, "some", posts[i].Keywords)
+				assert.NotEmpty(t, posts[i].Slug)
+				assert.NotEmpty(t, posts[i].CreatedAt)
+
+				// check that unnecessary fields are empty
+				assert.Empty(t, posts[i].Content)
+				assert.Empty(t, posts[i].UpdatedAt)
+				assert.Empty(t, posts[i].UserID)
 			}
 		})
 

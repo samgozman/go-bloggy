@@ -102,10 +102,12 @@ func (db *PostDB) GetBySlug(ctx context.Context, slug string) (*Post, error) {
 }
 
 // FindAll returns all the posts with pagination, sorted by the created time.
+// Selects only the necessary fields to reduce the payload - slug, title, description, keywords, created_at.
 func (db *PostDB) FindAll(ctx context.Context, page, perPage int) ([]*Post, error) {
 	var posts []*Post
 	err := db.conn.
 		WithContext(ctx).
+		Select("slug, title, description, keywords, created_at").
 		Offset((page - 1) * perPage).
 		Limit(perPage).
 		Order("created_at desc").
