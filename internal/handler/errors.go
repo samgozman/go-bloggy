@@ -8,4 +8,9 @@ const (
 	errGetUserInfo        = "ERR_GET_USER_INFO"
 	errCreateToken        = "ERR_CREATE_TOKEN" //nolint:gosec
 	errCreateUser         = "ERR_CREATE_USER"
+	errUnauthorized       = "ERR_UNAUTHORIZED"
+	errGetUser            = "ERR_GET_USER"
+	errDuplicatePost      = "ERR_DUPLICATE_POST"
+	errCreatePost         = "ERR_CREATE_POST"
+	errValidationFailed   = "ERR_VALIDATION_FAILED"
 )

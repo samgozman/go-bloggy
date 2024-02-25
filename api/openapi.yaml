@@ -84,6 +84,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
+  /posts:
+    post:
+      summary: Create a new post
+      description: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostRequest"
+      headers:
+        Authorization:
+        description: JWT Auth token
+        required: true
+        schema:
+          type: string
+          format: bearer
+          example: Bearer <token>
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '401':
+          description: Unauthorized error if the user is not allowed to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '409':
+          description: Conflict error if the post already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
 components:
   schemas:
     RequestError:
@@ -115,5 +158,63 @@ components:
       properties:
         token:
           type: string
-          example: "jwt; Path=/; HttpOnly; Secure"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       required: [ "token" ]
+    PostRequest:
+      type: object
+      description: A post object to be created
+      properties:
+        title:
+          type: string
+          example: "My first post"
+        slug:
+          type: string
+          description: The URL slug of the post. Should be unique and URL-friendly.
+          example: "my-first-post"
+        description:
+          type: string
+          description: A short description of the post for the index page
+          example: "This is my first post"
+        keywords:
+          type: array
+          description: Keywords for the post for SEO and search purposes
+          items:
+            type: string
+            example: [ "golang", "openapi" ]
+        content:
+          type: string
+          example: "### Hello, world!\n"
+      required: [ "title", "slug", "description", "content" ]
+    PostResponse:
+      type: object
+      description: A post object after it's been created or fetched
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "My first post"
+        slug:
+          type: string
+          example: "my-first-post"
+        description:
+          type: string
+          example: "This is my first post"
+        keywords:
+          type: array
+          items:
+            type: string
+            example: [ "golang", "openapi" ]
+        content:
+          type: string
+          example: "### Hello, world!\n"
+        created_at:
+          type: string
+          format: date-time
+          example: "2021-08-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2021-08-01T00:00:00Z"
+      required: [ "id", "title", "slug", "description", "content", "created_at", "updated_at" ]

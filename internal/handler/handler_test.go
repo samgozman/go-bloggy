@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
+	"github.com/samgozman/go-bloggy/internal/middlewares"
 	"github.com/samgozman/go-bloggy/pkg/client"
 	"github.com/stretchr/testify/mock"
 	"time"
@@ -48,6 +49,8 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (server *echo.Echo,
 	// Create echo instance
 	e := echo.New()
 	h := NewHandler(g, j, conn, adminsIDs)
+	e.Use(middlewares.JWTAuth(j))
+
 	client.RegisterHandlers(e, h)
 
 	return e, g, j
