@@ -7,6 +7,8 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/pkg/server"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
 func (h *Handler) PostPosts(ctx echo.Context) error {
@@ -89,6 +91,36 @@ func (h *Handler) PostPosts(ctx echo.Context) error {
 		Description: post.Description,
 		Content:     post.Content,
 		Keywords:    req.Keywords,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
+	})
+}
+
+func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
+	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(slug) {
+		return ctx.JSON(http.StatusBadRequest, server.RequestError{
+			Code:    errParamValidation,
+			Message: "Slug is empty",
+		})
+	}
+
+	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, server.RequestError{
+			Code:    errGetPostNotFound,
+			Message: "Post not found",
+		})
+	}
+
+	keywords := strings.Split(post.Keywords, ",")
+
+	return ctx.JSON(http.StatusOK, server.PostResponse{
+		Id:          post.ID,
+		Title:       post.Title,
+		Slug:        post.Slug,
+		Description: post.Description,
+		Content:     post.Content,
+		Keywords:    &keywords,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 	})

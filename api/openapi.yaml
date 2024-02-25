@@ -127,6 +127,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
+  /posts/{slug}:
+    get:
+      summary: Get a post by slug
+      description: Get a post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: The URL slug of the post
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '404':
+          description: Not Found error if the post doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+
 components:
   schemas:
     RequestError:

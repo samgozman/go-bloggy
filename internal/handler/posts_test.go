@@ -211,3 +211,82 @@ func Test_PostPosts(t *testing.T) {
 		assert.Equal(t, "Post validation failed", body.Message)
 	})
 }
+
+func TestHandler_GetPostsSlug(t *testing.T) {
+	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	if errDB != nil {
+		t.Fatal(errDB)
+	}
+
+	// create user for test
+	user := &models.User{
+		ExternalID: uuid.New().String(),
+		AuthMethod: models.GitHubAuthMethod,
+		Login:      "testUser",
+	}
+	err := conn.Models.Users.Upsert(context.Background(), user)
+	assert.NoError(t, err)
+
+	e, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+
+	// create post for test
+	post := &models.Post{
+		UserID:      user.ID,
+		Title:       "Test Title",
+		Slug:        "test-slug",
+		Content:     "Test Content",
+		Description: "Test Description",
+		Keywords:    "test1,test2",
+	}
+	err = conn.Models.Posts.Create(context.Background(), post)
+	assert.NoError(t, err)
+
+	t.Run("200 - OK", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts/"+post.Slug).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postRes server.PostResponse
+		err := res.UnmarshalBodyToObject(&postRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, post.Title, postRes.Title)
+		assert.Equal(t, post.Slug, postRes.Slug)
+		assert.Equal(t, post.Content, postRes.Content)
+		assert.Equal(t, post.Description, postRes.Description)
+		assert.Equal(t, &[]string{"test1", "test2"}, postRes.Keywords)
+		assert.NotEmpty(t, postRes.Id)
+		assert.NotEmpty(t, postRes.CreatedAt)
+		assert.NotEmpty(t, postRes.UpdatedAt)
+	})
+
+	t.Run("404 - Not Found", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts/not-found-slug").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusNotFound, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errGetPostNotFound, body.Code)
+		assert.Equal(t, "Post not found", body.Message)
+	})
+
+	t.Run("400 - errParamValidation", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts/&kek*").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errParamValidation, body.Code)
+		assert.Equal(t, "Slug is empty", body.Message)
+	})
+}
