@@ -5,7 +5,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
-	"github.com/samgozman/go-bloggy/pkg/client"
+	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/mock"
 	"time"
 
@@ -41,7 +41,7 @@ func (m *MockJWTService) ParseTokenString(token string) (string, error) {
 }
 
 // registerHandlers creates a new echo instance and registers the handlers for testing.
-func registerHandlers(conn *db.Database, adminsIDs []string) (server *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
+func registerHandlers(conn *db.Database, adminsIDs []string) (s *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
@@ -51,7 +51,7 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (server *echo.Echo,
 	h := NewHandler(g, j, conn, adminsIDs)
 	e.Use(middlewares.JWTAuth(j))
 
-	client.RegisterHandlers(e, h)
+	server.RegisterHandlers(e, h)
 
 	return e, g, j
 }

@@ -1,6 +1,6 @@
 //go:build tools
 
-package client
+package server
 
 import (
 	_ "github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen"

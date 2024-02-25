@@ -7,7 +7,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/handler"
 	"github.com/samgozman/go-bloggy/internal/jwt"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
-	"github.com/samgozman/go-bloggy/pkg/client"
+	oapi "github.com/samgozman/go-bloggy/pkg/server"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	server := echo.New()
 	server.Use(middlewares.JWTAuth(jwtService))
 
-	client.RegisterHandlers(server, apiHandler)
+	oapi.RegisterHandlers(server, apiHandler)
 
 	server.Logger.Fatal(server.Start(":" + config.Port))
 }

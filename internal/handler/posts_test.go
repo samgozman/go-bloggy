@@ -9,7 +9,7 @@ import (
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"github.com/samgozman/go-bloggy/pkg/client"
+	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
@@ -37,7 +37,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := client.PostRequest{
+		req := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -56,7 +56,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, res.Code())
 
-		var post client.PostResponse
+		var post server.PostResponse
 		err := res.UnmarshalBodyToObject(&post)
 		assert.NoError(t, err)
 
@@ -85,7 +85,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := client.PostRequest{
+		req := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -104,7 +104,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body client.RequestError
+		var body server.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errRequestBodyBinding, body.Code)
@@ -115,7 +115,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(uuid.New().String(), nil)
 
-		req := client.PostRequest{
+		req := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -133,7 +133,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body client.RequestError
+		var body server.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errGetUser, body.Code)
@@ -144,7 +144,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		post1 := client.PostRequest{
+		post1 := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -174,7 +174,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusConflict, res.Code())
 
-		var body client.RequestError
+		var body server.RequestError
 		err = res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errDuplicatePost, body.Code)
@@ -185,7 +185,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := client.PostRequest{
+		req := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -204,7 +204,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body client.RequestError
+		var body server.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errValidationFailed, body.Code)
