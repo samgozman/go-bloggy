@@ -18,7 +18,7 @@ import (
 )
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
 	}

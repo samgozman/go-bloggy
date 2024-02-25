@@ -17,7 +17,7 @@ import (
 )
 
 func Test_PostPosts(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -213,7 +213,7 @@ func Test_PostPosts(t *testing.T) {
 }
 
 func TestHandler_GetPostsSlug(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -292,7 +292,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 }
 
 func TestHandler_GetPosts(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
 	}

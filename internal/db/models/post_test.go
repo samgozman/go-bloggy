@@ -8,7 +8,7 @@ import (
 )
 
 func TestPostDB(t *testing.T) {
-	db, err := NewTestDB("file::memory:?cache=shared")
+	db, err := NewTestDB("file::memory:")
 	assert.NoError(t, err)
 
 	// insert a user to db
@@ -345,7 +345,7 @@ func TestPost_BeforeUpdate(t *testing.T) {
 }
 
 func TestPostDB_Count(t *testing.T) {
-	db, err := NewTestDB("file::memory:?cache=shared")
+	db, err := NewTestDB("file::memory:")
 	assert.NoError(t, err)
 
 	// insert a user to db

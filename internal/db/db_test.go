@@ -13,7 +13,7 @@ func TestInitDatabase(t *testing.T) {
 	})
 
 	t.Run("should return database connection", func(t *testing.T) {
-		db, err := InitDatabase("file::memory:?cache=shared")
+		db, err := InitDatabase("file::memory:")
 		assert.NoError(t, err)
 		assert.NotNil(t, db)
 		assert.NotNil(t, db.conn)

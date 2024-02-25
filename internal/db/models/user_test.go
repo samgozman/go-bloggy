@@ -50,7 +50,7 @@ func testCreateUser(ctx context.Context, db *gorm.DB) (User, error) {
 }
 
 func TestUserDB(t *testing.T) {
-	db, e := NewTestDB("file::memory:?cache=shared")
+	db, e := NewTestDB("file::memory:")
 	assert.NoError(t, e)
 
 	userDB := NewUserDB(db)
