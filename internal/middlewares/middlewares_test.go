@@ -37,7 +37,7 @@ func Test_JWTAuth(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "test", rec.Body.String())
-		assert.Equal(t, "SuperUserID", ctx.Get("userID"))
+		assert.Equal(t, "SuperUserID", ctx.Get("externalUserID"))
 	})
 
 	t.Run("invalid token", func(t *testing.T) {

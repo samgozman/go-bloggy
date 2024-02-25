@@ -38,5 +38,5 @@ type githubService interface {
 
 type jwtService interface {
 	CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error)
-	ParseTokenString(tokenString string) (userID string, err error)
+	ParseTokenString(tokenString string) (externalUserID string, err error)
 }

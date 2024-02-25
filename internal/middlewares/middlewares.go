@@ -31,13 +31,13 @@ func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
 			}
 
 			// parse token
-			userID, err := jwtService.ParseTokenString(token)
+			externalUserID, err := jwtService.ParseTokenString(token)
 			if err != nil {
 				return ctx.JSON(401, ErrInvalidToken)
 			}
 
 			// add user ID to context
-			ctx.Set("userID", userID)
+			ctx.Set("externalUserID", externalUserID)
 
 			return next(ctx)
 		}
@@ -45,5 +45,5 @@ func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
 }
 
 type jwtService interface {
-	ParseTokenString(tokenString string) (userID string, err error)
+	ParseTokenString(tokenString string) (externalUserID string, err error)
 }

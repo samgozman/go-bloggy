@@ -52,7 +52,7 @@ func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (jwtToke
 }
 
 // ParseTokenString parses a JWT token string and returns User ID.
-func (s *Service) ParseTokenString(tokenString string) (userID string, err error) {
+func (s *Service) ParseTokenString(tokenString string) (externalUserID string, err error) {
 	token, err := jwtgo.ParseWithClaims(tokenString, &Claims{}, func(token *jwtgo.Token) (interface{}, error) {
 		return []byte(s.signKey), nil
 	})
