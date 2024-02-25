@@ -128,3 +128,14 @@ func (db *PostDB) Update(ctx context.Context, p *Post) error {
 
 	return nil
 }
+
+// Count returns the total number of posts.
+func (db *PostDB) Count(ctx context.Context) (int64, error) {
+	var count int64
+	err := db.conn.WithContext(ctx).Model(&Post{}).Count(&count).Error
+	if err != nil {
+		return 0, mapGormError(err)
+	}
+
+	return count, nil
+}
