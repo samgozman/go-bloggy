@@ -21,7 +21,7 @@ func NewPostDB(conn *gorm.DB) *PostDB {
 	}
 }
 
-// Post is the model for the post data.
+// Post is the model for the post-data.
 type Post struct {
 	ID          int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	Slug        string `json:"slug" gorm:"uniqueIndex"` // Slug is the URL friendly version of the title
@@ -80,8 +80,8 @@ func (p *Post) BeforeUpdate(_ *gorm.DB) error {
 	return nil
 }
 
-// CreatePost creates a new Post.
-func (db *PostDB) CreatePost(ctx context.Context, p *Post) error {
+// Create creates a new Post.
+func (db *PostDB) Create(ctx context.Context, p *Post) error {
 	err := db.conn.WithContext(ctx).Create(p).Error
 	if err != nil {
 		return mapGormError(err)
@@ -90,8 +90,8 @@ func (db *PostDB) CreatePost(ctx context.Context, p *Post) error {
 	return nil
 }
 
-// GetPostBySlug finds a Post by its URL Slug.
-func (db *PostDB) GetPostBySlug(ctx context.Context, slug string) (*Post, error) {
+// GetBySlug finds a Post by its URL Slug.
+func (db *PostDB) GetBySlug(ctx context.Context, slug string) (*Post, error) {
 	var p Post
 	err := db.conn.WithContext(ctx).Where("slug = ?", slug).First(&p).Error
 	if err != nil {
@@ -101,8 +101,8 @@ func (db *PostDB) GetPostBySlug(ctx context.Context, slug string) (*Post, error)
 	return &p, nil
 }
 
-// GetPosts returns all the posts with pagination, sorted by the created time.
-func (db *PostDB) GetPosts(ctx context.Context, page, perPage int) ([]*Post, error) {
+// FindAll returns all the posts with pagination, sorted by the created time.
+func (db *PostDB) FindAll(ctx context.Context, page, perPage int) ([]*Post, error) {
 	var posts []*Post
 	err := db.conn.
 		WithContext(ctx).
@@ -117,8 +117,8 @@ func (db *PostDB) GetPosts(ctx context.Context, page, perPage int) ([]*Post, err
 	return posts, nil
 }
 
-// UpdatePost updates the Post.
-func (db *PostDB) UpdatePost(ctx context.Context, p *Post) error {
+// Update updates the Post.
+func (db *PostDB) Update(ctx context.Context, p *Post) error {
 	err := db.conn.WithContext(ctx).Save(p).Error
 	if err != nil {
 		return mapGormError(err)

@@ -23,7 +23,7 @@ func TestPostDB(t *testing.T) {
 
 	postDB := NewPostDB(db)
 
-	t.Run("CreatePost", func(t *testing.T) {
+	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new post", func(t *testing.T) {
 			post := &Post{
 				UserID:      user.ID,
@@ -34,7 +34,7 @@ func TestPostDB(t *testing.T) {
 				Keywords:    "test,content",
 			}
 
-			err := postDB.CreatePost(context.Background(), post)
+			err := postDB.Create(context.Background(), post)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, post.ID)
 			assert.NotZero(t, post.CreatedAt)
@@ -50,10 +50,10 @@ func TestPostDB(t *testing.T) {
 				Content:     "Test Content",
 			}
 
-			err := postDB.CreatePost(context.Background(), post)
+			err := postDB.Create(context.Background(), post)
 			assert.NoError(t, err)
 
-			err = postDB.CreatePost(context.Background(), post)
+			err = postDB.Create(context.Background(), post)
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrDuplicate)
 		})
@@ -67,7 +67,7 @@ func TestPostDB(t *testing.T) {
 				Content:     "Test Content",
 			}
 
-			err := postDB.CreatePost(context.Background(), post)
+			err := postDB.Create(context.Background(), post)
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrValidationFailed)
 			assert.ErrorIs(t, err, ErrPostInvalidSlug)
@@ -92,25 +92,25 @@ func TestPostDB(t *testing.T) {
 		}
 
 		t.Run("should get the post", func(t *testing.T) {
-			err := postDB.CreatePost(context.Background(), anotherPost)
+			err := postDB.Create(context.Background(), anotherPost)
 			assert.NoError(t, err)
 
-			err = postDB.CreatePost(context.Background(), post)
+			err = postDB.Create(context.Background(), post)
 			assert.NoError(t, err)
 
-			retrievedPost, err := postDB.GetPostBySlug(context.Background(), post.Slug)
+			retrievedPost, err := postDB.GetBySlug(context.Background(), post.Slug)
 			assert.NoError(t, err)
 			assert.Equal(t, post.Slug, retrievedPost.Slug)
 		})
 
 		t.Run("should return error if not found", func(t *testing.T) {
-			_, err := postDB.GetPostBySlug(context.Background(), "not-found")
+			_, err := postDB.GetBySlug(context.Background(), "not-found")
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 		})
 	})
 
-	t.Run("GetPosts", func(t *testing.T) {
+	t.Run("FindAll", func(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			post := &Post{
 				UserID:      user.ID,
@@ -120,12 +120,12 @@ func TestPostDB(t *testing.T) {
 				Content:     "Test Content",
 			}
 
-			err := postDB.CreatePost(context.Background(), post)
+			err := postDB.Create(context.Background(), post)
 			assert.NoError(t, err)
 		}
 
 		t.Run("get all", func(t *testing.T) {
-			posts, err := postDB.GetPosts(context.Background(), 1, 5)
+			posts, err := postDB.FindAll(context.Background(), 1, 5)
 			assert.NoError(t, err)
 			assert.Equal(t, 5, len(posts))
 
@@ -136,25 +136,25 @@ func TestPostDB(t *testing.T) {
 		})
 
 		t.Run("get first 3", func(t *testing.T) {
-			posts, err := postDB.GetPosts(context.Background(), 1, 3)
+			posts, err := postDB.FindAll(context.Background(), 1, 3)
 			assert.NoError(t, err)
 			assert.Equal(t, 3, len(posts))
 		})
 
 		t.Run("get next 3", func(t *testing.T) {
-			posts, err := postDB.GetPosts(context.Background(), 2, 3)
+			posts, err := postDB.FindAll(context.Background(), 2, 3)
 			assert.NoError(t, err)
 			assert.Equal(t, 3, len(posts))
 		})
 
 		t.Run("return empty if non found", func(t *testing.T) {
-			posts, err := postDB.GetPosts(context.Background(), 1000, 1)
+			posts, err := postDB.FindAll(context.Background(), 1000, 1)
 			assert.NoError(t, err)
 			assert.Empty(t, posts)
 		})
 	})
 
-	t.Run("UpdatePost", func(t *testing.T) {
+	t.Run("Update", func(t *testing.T) {
 		post := &Post{
 			UserID:      user.ID,
 			Slug:        uuid.New().String(),
@@ -163,14 +163,14 @@ func TestPostDB(t *testing.T) {
 			Content:     "Test Content",
 		}
 
-		err := postDB.CreatePost(context.Background(), post)
+		err := postDB.Create(context.Background(), post)
 		assert.NoError(t, err)
 
 		post.Title = "Updated Title"
-		err = postDB.UpdatePost(context.Background(), post)
+		err = postDB.Update(context.Background(), post)
 		assert.NoError(t, err)
 
-		updatedPost, err := postDB.GetPostBySlug(context.Background(), post.Slug)
+		updatedPost, err := postDB.GetBySlug(context.Background(), post.Slug)
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Title", updatedPost.Title)
 	})
