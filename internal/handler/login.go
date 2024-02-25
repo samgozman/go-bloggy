@@ -12,7 +12,7 @@ import (
 )
 
 // PostLoginGithubAuthorize handles the request to authorize with GitHub.
-func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
+func (h *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 	var req client.GitHubAuthRequestBody
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, client.RequestError{
@@ -28,7 +28,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	token, err := s.githubService.ExchangeCodeForToken(ctx.Request().Context(), req.Code)
+	token, err := h.githubService.ExchangeCodeForToken(ctx.Request().Context(), req.Code)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
 			Code:    errExchangeCode,
@@ -36,7 +36,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	user, err := s.githubService.GetUserInfo(ctx.Request().Context(), token)
+	user, err := h.githubService.GetUserInfo(ctx.Request().Context(), token)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
 			Code:    errGetUserInfo,
@@ -45,7 +45,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 	}
 
 	// Check if user is an admin
-	if !slices.Contains(s.adminsExternalIDs, strconv.Itoa(user.ID)) {
+	if !slices.Contains(h.adminsExternalIDs, strconv.Itoa(user.ID)) {
 		return ctx.JSON(http.StatusForbidden, client.RequestError{
 			Code:    errForbidden,
 			Message: "User is not an admin",
@@ -53,7 +53,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 	}
 
 	// TODO: Store JWT expiration time in config
-	jwtToken, err := s.jwtService.CreateTokenString(strconv.Itoa(user.ID), time.Now().Add(time.Minute))
+	jwtToken, err := h.jwtService.CreateTokenString(strconv.Itoa(user.ID), time.Now().Add(time.Minute))
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
 			Code:    errCreateToken,
@@ -61,7 +61,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	err = s.db.Models.Users.Upsert(ctx.Request().Context(), &models.User{
+	err = h.db.Models.Users.Upsert(ctx.Request().Context(), &models.User{
 		ExternalID: strconv.Itoa(user.ID),
 		Login:      user.Login,
 		AuthMethod: models.GitHubAuthMethod,
@@ -79,7 +79,7 @@ func (s *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 }
 
 // PostLoginRefresh handles the request to refresh the JWT token.
-func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
+func (h *Handler) PostLoginRefresh(ctx echo.Context) error {
 	token := ctx.Request().Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -89,7 +89,7 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 		})
 	}
 
-	userID, err := s.jwtService.ParseTokenString(token)
+	userID, err := h.jwtService.ParseTokenString(token)
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, client.RequestError{
 			Code:    errForbidden,
@@ -98,7 +98,7 @@ func (s *Handler) PostLoginRefresh(ctx echo.Context) error {
 	}
 
 	// TODO: Store JWT expiration time in config
-	newToken, err := s.jwtService.CreateTokenString(userID, time.Now().Add(time.Minute))
+	newToken, err := h.jwtService.CreateTokenString(userID, time.Now().Add(time.Minute))
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, client.RequestError{
 			Code:    errCreateToken,

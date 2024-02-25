@@ -7,7 +7,7 @@ import (
 )
 
 // GetHealth returns health status of the service.
-func (s *Handler) GetHealth(ctx echo.Context) error {
+func (h *Handler) GetHealth(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, client.HealthCheckResponse{
 		Status: "OK",
 	})
