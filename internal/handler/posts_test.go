@@ -290,3 +290,122 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		assert.Equal(t, "Slug is empty", body.Message)
 	})
 }
+
+func TestHandler_GetPosts(t *testing.T) {
+	conn, errDB := db.InitDatabase("file::memory:?cache=shared")
+	if errDB != nil {
+		t.Fatal(errDB)
+	}
+
+	// create user for test
+	user := &models.User{
+		ExternalID: uuid.New().String(),
+		AuthMethod: models.GitHubAuthMethod,
+		Login:      "testUser",
+	}
+	err := conn.Models.Users.Upsert(context.Background(), user)
+	assert.NoError(t, err)
+
+	e, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+
+	// create posts for test
+	posts := []*models.Post{
+		{
+			UserID:      user.ID,
+			Title:       "Test Title 1",
+			Slug:        "test-slug-1",
+			Content:     "Test Content 1",
+			Description: "Test Description 1",
+			Keywords:    "test1,test2",
+		},
+		{
+			UserID:      user.ID,
+			Title:       "Test Title 2",
+			Slug:        "test-slug-2",
+			Content:     "Test Content 2",
+			Description: "Test Description 2",
+			Keywords:    "test1,test2",
+		},
+	}
+	for _, post := range posts {
+		err = conn.Models.Posts.Create(context.Background(), post)
+		assert.NoError(t, err)
+	}
+
+	t.Run("200 - OK", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postsRes server.PostsListResponse
+		err := res.UnmarshalBodyToObject(&postsRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, postsRes.Total, 2)
+		assert.Len(t, postsRes.Posts, 2)
+	})
+
+	t.Run("OK - with limit and offset", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts?limit=1&page=1").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postsRes server.PostsListResponse
+		err := res.UnmarshalBodyToObject(&postsRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, postsRes.Total, 2)
+		assert.Len(t, postsRes.Posts, 1)
+		assert.Equal(t, posts[1].Title, postsRes.Posts[0].Title)
+		assert.Equal(t, posts[1].Slug, postsRes.Posts[0].Slug)
+		assert.Equal(t, posts[1].Description, postsRes.Posts[0].Description)
+		assert.Equal(t, &[]string{"test1", "test2"}, postsRes.Posts[0].Keywords)
+	})
+
+	t.Run("OK - zero posts per page", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts?limit=1&page=100").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postsRes server.PostsListResponse
+		err := res.UnmarshalBodyToObject(&postsRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, postsRes.Total, 2)
+		assert.Len(t, postsRes.Posts, 0)
+	})
+
+	t.Run("400 - errParamValidation - limit", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts?limit=0").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errParamValidation, body.Code)
+		assert.Equal(t, "Limit must be between 1 and 25", body.Message)
+	})
+
+	t.Run("400 - errParamValidation - page", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Get("/posts?page=0").
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errParamValidation, body.Code)
+		assert.Equal(t, "Page must be greater than 0", body.Message)
+	})
+}

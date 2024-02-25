@@ -125,3 +125,62 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 		UpdatedAt:   post.UpdatedAt,
 	})
 }
+
+func (h *Handler) GetPosts(ctx echo.Context, params server.GetPostsParams) error {
+	limit := 10
+	page := 1
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	if limit < 1 || limit > 25 {
+		return ctx.JSON(http.StatusBadRequest, server.RequestError{
+			Code:    errParamValidation,
+			Message: "Limit must be between 1 and 25",
+		})
+	}
+
+	if page < 1 {
+		return ctx.JSON(http.StatusBadRequest, server.RequestError{
+			Code:    errParamValidation,
+			Message: "Page must be greater than 0",
+		})
+	}
+
+	count, err := h.db.Models.Posts.Count(ctx.Request().Context())
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
+			Code:    errGetPostsCount,
+			Message: "Error getting posts",
+		})
+	}
+
+	posts, err := h.db.Models.Posts.FindAll(ctx.Request().Context(), page, limit)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
+			Code:    errGetPosts,
+			Message: "Error getting posts",
+		})
+	}
+
+	postsItems := make([]server.PostsListItem, 0, len(posts))
+	for _, post := range posts {
+		keywords := strings.Split(post.Keywords, ",")
+		postsItems = append(postsItems, server.PostsListItem{
+			Title:       post.Title,
+			Slug:        post.Slug,
+			Description: post.Description,
+			Keywords:    &keywords,
+			CreatedAt:   post.CreatedAt,
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, server.PostsListResponse{
+		Posts: postsItems,
+		Total: int(count),
+	})
+}

@@ -61,10 +61,34 @@ type PostResponse struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// PostsListItem defines model for PostsListItem.
+type PostsListItem struct {
+	CreatedAt   time.Time `json:"created_at"`
+	Description string    `json:"description"`
+	Keywords    *[]string `json:"keywords,omitempty"`
+	Slug        string    `json:"slug"`
+	Title       string    `json:"title"`
+}
+
+// PostsListResponse A list of posts
+type PostsListResponse struct {
+	Posts []PostsListItem `json:"posts"`
+	Total int             `json:"total"`
+}
+
 // RequestError defines model for RequestError.
 type RequestError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+// GetPostsParams defines parameters for GetPosts.
+type GetPostsParams struct {
+	// Page Page number
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// Limit Number of items per page
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // PostLoginGithubAuthorizeJSONRequestBody defines body for PostLoginGithubAuthorize for application/json ContentType.
@@ -84,6 +108,9 @@ type ServerInterface interface {
 	// Refresh the JWT token
 	// (POST /login/refresh)
 	PostLoginRefresh(ctx echo.Context) error
+	// Get all posts
+	// (GET /posts)
+	GetPosts(ctx echo.Context, params GetPostsParams) error
 	// Create a new post
 	// (POST /posts)
 	PostPosts(ctx echo.Context) error
@@ -121,6 +148,31 @@ func (w *ServerInterfaceWrapper) PostLoginRefresh(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostLoginRefresh(ctx)
+	return err
+}
+
+// GetPosts converts echo context to params.
+func (w *ServerInterfaceWrapper) GetPosts(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPostsParams
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", ctx.QueryParams(), &params.Page)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter page: %s", err))
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetPosts(ctx, params)
 	return err
 }
 
@@ -180,6 +232,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/health", wrapper.GetHealth)
 	router.POST(baseURL+"/login/github/authorize", wrapper.PostLoginGithubAuthorize)
 	router.POST(baseURL+"/login/refresh", wrapper.PostLoginRefresh)
+	router.GET(baseURL+"/posts", wrapper.GetPosts)
 	router.POST(baseURL+"/posts", wrapper.PostPosts)
 	router.GET(baseURL+"/posts/:slug", wrapper.GetPostsSlug)
 
@@ -188,30 +241,32 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xYf2/bOBL9KnPsAb0/ZMtO2l5roDgkRuo6TZsica6LbYqUEkcSG4pUSaqJW/i7L0jJ",
-	"P2TLTbpIggV2gcCRxSHfcPjezNA/SKzyQkmU1pDBD2LiDHPqH0fcvi6jvdJmJ/i1RGP3FZu6gUKrArXl",
-	"6M1ixdD9x2uaFwLJgPR3dp88ffbf5y96NIoZJiQgdlq4EWM1lymZzQKi8WvJNTIy+Fgt8WlhpaIvGFsy",
-	"C8hrpMJmwwzjyxM0hZIGNx0wltrSNF04fnMjaD2tDfbww2SiLlFuYtn56yUUTg+zaBTzY344Pvs+7r/j",
-	"YzOWJ0/j4fjZ+LL47f/DwxfdbvdGf6ql29x5r4ytj8BBMzSx5oXlSpIB2YNCGQuVNVgFEUKskVpkJNg4",
-	"KmlR2qb/jx49gtcohArgSmnB/nUuN30NmqibTphMaQsrb0ElYDOsvEuU9l+4ZHgNBU2RBCsuTDJugBvI",
-	"p5Bwbayf1ObEJU6vlGZm04M39cgCaoF7enAMVDIwSHWcQVHqQhk0JCDcYt7kzUeSKkFlSgKiCpS04CsH",
-	"snSjfkG1plP33Ygy3XRpkiGcnRyBG12NRhdOM1UK5k6qlPxrid6/s5OjTqI5Siam3UZ48mnHh6WzLSyW",
-	"W7Gmwbc/D+U69/wC9UaaZx0sWLOdmktl/oybNLGogdvHBiJEOWcpKA0J2ji7Y8LWy1/Qtek7vZ1+p/e8",
-	"0+tPer2B//udBCRROnemhFGLHctzvIUK/gSFOWtM7C9MuLSYol6n+Z2T9F55FZCyYHcd9jWycseTWzG2",
-	"QYKGa21crlPsgdZK36bMoTO88O9b4pCjMS7PNab4tWE+dKuyuFxp02c3gctEzaVCYx90SXNndUpzGKnv",
-	"OXUhKbUgA5JZW5hBGKbcZmXUjVUeGpqn3ihMVScSKk2nG0R3+Z27LcB52evtPAPB08xeofuEiMaXKJnP",
-	"tQy/oXBRM4/BfSpJBbhFXboVPMY6TdQevh1P4Kh++2suhpFQUZhTLsOj8fDg3enBCl/JSMG+N4O992MS",
-	"kG+oTbWRXrfX7TvTuXIGZLfb7/Zc5qE28ycdZr7rcI8ptlRc344ArxK6Qf3NZTUDZeHTuC6l5HNxaurm",
-	"jJnzCW3VzRB3yFXG9HA7vd5aqqNFIXjsp4ZfTJVpqr7MPf1bY+KyYLhs3MK6awvb+iXPkuYOjt94rpky",
-	"z6mekkHdZ0HsJvqhUKiUy/oQQlraTGn+vWq+VFsbcnAdZ1SmCBSqvhEce+E/iVa5O4VzOTqYwOeW062Q",
-	"lMNYAv0vFhylveDsZUU5jYxrjO1FqfnLz+fSsY3C4YcJ+L7Jl4BmwF1pOnJrjzzW3mIPlchW+tk7CX17",
-	"tzxratrqEmf3eP6LxnXLoQfkyR2iNRJmC+I+ZTDvWz307oNBv1I64oyhBJ+l52otTaVVqSxQIdQVMtcy",
-	"0zhGY7wFZTmXUFCJYk0jCwLBFbdZzfJVsWhMNJpsu0ZOKgOPs2Cuc833RHhdeJIEJEPKUHtyzEFpe989",
-	"WV2JrDMtWAnmsgbtI9WofSbfjSvxuEdcLcaRt2kpULOtKqs3R/6+7O4/GPSZXCRK9gsEXyN0Kx0rQjv+",
-	"mu1EHvquCihIvJo3gttJK0sh1nfg8JzZwzG3jbjv/Tbvpx6sXtpvVQX6dwy9vfwP658H/hHMjYJxbr54",
-	"MDeHSiaCx7bpor9DU6GRsingNXecbSp5U49LFYc/3BVptrWbHaEFWmFEU6ivUxutq1fKaTVYUE1ztF7s",
-	"H2/7owdxNxUy8F02CeYXgBpuu/jXVfzpHsvLTbL5C5SYJw8G/U5ZeKVKyVq4yBQa+dhWXFyjYgudZrPZ",
-	"7I8AAAD//wy7w6hnFgAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

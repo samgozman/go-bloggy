@@ -15,4 +15,6 @@ const (
 	errValidationFailed   = "ERR_VALIDATION_FAILED"
 	errGetPostNotFound    = "ERR_GET_POST_NOT_FOUND"
 	errParamValidation    = "ERR_PARAM_VALIDATION"
+	errGetPosts           = "ERR_GET_POSTS"
+	errGetPostsCount      = "ERR_GET_POSTS_COUNT"
 )
