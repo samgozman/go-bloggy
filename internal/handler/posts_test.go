@@ -40,7 +40,7 @@ func Test_PostPosts(t *testing.T) {
 		req := server.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
-			Content:     "Test Content",
+			Content:     "Test Content to read in 1 second",
 			Description: "Test Description",
 			Keywords:    &[]string{"test1", "test2"},
 		}
@@ -65,6 +65,7 @@ func Test_PostPosts(t *testing.T) {
 		assert.Equal(t, req.Content, post.Content)
 		assert.Equal(t, req.Description, post.Description)
 		assert.Equal(t, req.Keywords, post.Keywords)
+		assert.Equal(t, 1, post.ReadingTime)
 		assert.NotEmpty(t, post.Id)
 		assert.NotEmpty(t, post.CreatedAt)
 		assert.NotEmpty(t, post.UpdatedAt)
@@ -234,7 +235,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		UserID:      user.ID,
 		Title:       "Test Title",
 		Slug:        "test-slug",
-		Content:     "Test Content",
+		Content:     "Test Content to read in 1 second",
 		Description: "Test Description",
 		Keywords:    "test1,test2",
 	}
@@ -257,6 +258,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		assert.Equal(t, post.Content, postRes.Content)
 		assert.Equal(t, post.Description, postRes.Description)
 		assert.Equal(t, &[]string{"test1", "test2"}, postRes.Keywords)
+		assert.Equal(t, 1, postRes.ReadingTime)
 		assert.NotEmpty(t, postRes.Id)
 		assert.NotEmpty(t, postRes.CreatedAt)
 		assert.NotEmpty(t, postRes.UpdatedAt)
@@ -322,7 +324,7 @@ func TestHandler_GetPosts(t *testing.T) {
 			UserID:      user.ID,
 			Title:       "Test Title 2",
 			Slug:        "test-slug-2",
-			Content:     "Test Content 2",
+			Content:     "Test Content 1 to read in 1 second",
 			Description: "Test Description 2",
 			Keywords:    "test1,test2",
 		},
@@ -364,6 +366,7 @@ func TestHandler_GetPosts(t *testing.T) {
 		assert.Equal(t, posts[1].Slug, postsRes.Posts[0].Slug)
 		assert.Equal(t, posts[1].Description, postsRes.Posts[0].Description)
 		assert.Equal(t, &[]string{"test1", "test2"}, postsRes.Posts[0].Keywords)
+		assert.Equal(t, 1, postsRes.Posts[0].ReadingTime)
 	})
 
 	t.Run("OK - zero posts per page", func(t *testing.T) {

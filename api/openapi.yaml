@@ -275,6 +275,10 @@ components:
         content:
           type: string
           example: "### Hello, world!\n"
+        reading_time:
+          type: integer
+          example: 90
+          description: Approximate post reading time in seconds
         created_at:
           type: string
           format: date-time
@@ -283,7 +287,7 @@ components:
           type: string
           format: date-time
           example: "2021-08-01T00:00:00Z"
-      required: [ "id", "title", "slug", "description", "content", "created_at", "updated_at" ]
+      required: [ "id", "title", "slug", "description", "content", "reading_time", "created_at", "updated_at" ]
     PostsListItem:
       type: object
       properties:
@@ -301,11 +305,15 @@ components:
           items:
             type: string
             example: [ "golang", "openapi" ]
+        reading_time:
+          type: integer
+          example: 90
+          description: Approximate post reading time in seconds
         created_at:
           type: string
           format: date-time
           example: "2021-08-01T00:00:00Z"
-      required: [ "title", "slug", "description", "created_at" ]
+      required: [ "title", "slug", "description", "reading_time", "created_at" ]
     PostsListResponse:
       type: object
       description: A list of posts

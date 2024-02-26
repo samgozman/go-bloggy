@@ -91,6 +91,7 @@ func (h *Handler) PostPosts(ctx echo.Context) error {
 		Description: post.Description,
 		Content:     post.Content,
 		Keywords:    req.Keywords,
+		ReadingTime: post.ReadingTime,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 	})
@@ -121,6 +122,7 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 		Description: post.Description,
 		Content:     post.Content,
 		Keywords:    &keywords,
+		ReadingTime: post.ReadingTime,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 	})
@@ -175,6 +177,7 @@ func (h *Handler) GetPosts(ctx echo.Context, params server.GetPostsParams) error
 			Slug:        post.Slug,
 			Description: post.Description,
 			Keywords:    &keywords,
+			ReadingTime: post.ReadingTime,
 			CreatedAt:   post.CreatedAt,
 		})
 	}
