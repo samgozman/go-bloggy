@@ -242,9 +242,11 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 	err = conn.Models.Posts.Create(context.Background(), post)
 	assert.NoError(t, err)
 
+	basePath := "/posts/"
+
 	t.Run("200 - OK", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts/"+post.Slug).
+			Get(basePath+post.Slug).
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
@@ -274,7 +276,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		var body server.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
-		assert.Equal(t, errGetPostNotFound, body.Code)
+		assert.Equal(t, errPostNotFound, body.Code)
 		assert.Equal(t, "Post not found", body.Message)
 	})
 
@@ -410,5 +412,171 @@ func TestHandler_GetPosts(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errParamValidation, body.Code)
 		assert.Equal(t, "Page must be greater than 0", body.Message)
+	})
+}
+
+func TestHandler_PutPostsSlug(t *testing.T) {
+	conn, errDB := db.InitDatabase("file::memory:")
+	if errDB != nil {
+		t.Fatal(errDB)
+	}
+
+	// create user for test
+	user := &models.User{
+		ExternalID: uuid.New().String(),
+		AuthMethod: models.GitHubAuthMethod,
+		Login:      "testUser",
+	}
+	err := conn.Models.Users.Upsert(context.Background(), user)
+	assert.NoError(t, err)
+
+	basePath := "/posts/"
+	jwtToken := "token"
+	// create post for test
+	post := &models.Post{
+		UserID:      user.ID,
+		Title:       "Test Title",
+		Slug:        "test-slug",
+		Content:     "Test Content to read in 1 second",
+		Description: "Test Description",
+		Keywords:    "test1,test2",
+	}
+	err = conn.Models.Posts.Create(context.Background(), post)
+	assert.NoError(t, err)
+
+	t.Run("OK", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
+		req := server.PostRequest{
+			Title:       "New Title",
+			Content:     "New Content to read in 1 second",
+			Description: "New Description",
+			Keywords:    &[]string{"new1", "new2"},
+		}
+
+		reqBody, _ := json.Marshal(req)
+
+		res := testutil.NewRequest().
+			Put(basePath+post.Slug).
+			WithHeader("Content-Type", "application/json").
+			WithBody(reqBody).
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postRes server.PostResponse
+		err := res.UnmarshalBodyToObject(&postRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, req.Title, postRes.Title)
+		assert.Equal(t, post.Slug, postRes.Slug)
+		assert.Equal(t, req.Content, postRes.Content)
+		assert.Equal(t, req.Description, postRes.Description)
+		assert.Equal(t, req.Keywords, postRes.Keywords)
+		assert.Equal(t, 1, postRes.ReadingTime)
+		assert.NotEmpty(t, postRes.Id)
+		assert.NotEmpty(t, postRes.CreatedAt)
+		assert.NotEmpty(t, postRes.UpdatedAt)
+
+		// check that post is in the database
+		postFromDB, err := conn.Models.Posts.GetBySlug(context.Background(), post.Slug)
+		assert.NoError(t, err)
+		assert.Equal(t, req.Title, postFromDB.Title)
+		assert.Equal(t, post.Slug, postFromDB.Slug)
+		assert.Equal(t, req.Content, postFromDB.Content)
+		assert.Equal(t, req.Description, postFromDB.Description)
+		assert.Equal(t, postFromDB.Keywords, "new1,new2")
+		assert.NotEmpty(t, postFromDB.CreatedAt)
+		assert.NotEmpty(t, postFromDB.UpdatedAt)
+	})
+
+	t.Run("400 - errRequestBodyBinding - ErrUnsupportedMediaType", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers(conn, nil)
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
+		req := server.PostRequest{
+			Title:       "Test Title",
+			Slug:        uuid.New().String(),
+			Content:     "Test Content",
+			Description: "Test Description",
+			Keywords:    &[]string{"test1", "test2"},
+		}
+
+		reqBody, _ := json.Marshal(req)
+
+		// Note: no Content-Type header
+		res := testutil.NewRequest().
+			Put(basePath+uuid.New().String()).
+			WithBody(reqBody).
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errRequestBodyBinding, body.Code)
+		assert.Equal(t, fmt.Sprintf("Error binding request body: %v", echo.ErrUnsupportedMediaType.Message), body.Message)
+	})
+
+	t.Run("404 - errPostNotFound", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers(conn, nil)
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
+		req := server.PostRequest{
+			Title:       "Test Title",
+			Slug:        post.Slug,
+			Content:     "Test Content",
+			Description: "Test Description",
+		}
+
+		reqBody, _ := json.Marshal(req)
+
+		res := testutil.NewRequest().
+			Put("/posts/not-found-slug").
+			WithHeader("Content-Type", "application/json").
+			WithBody(reqBody).
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusNotFound, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errPostNotFound, body.Code)
+		assert.Equal(t, "Post not found", body.Message)
+	})
+
+	t.Run("400 - errValidationFailed", func(t *testing.T) {
+		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
+		req := server.PostRequest{
+			Title:       "New Title",
+			Content:     "New Content to read in 1 second",
+			Description: "New Description",
+			Keywords:    &[]string{"new1", "", ""}, // invalid keywords
+		}
+
+		reqBody, _ := json.Marshal(req)
+
+		res := testutil.NewRequest().
+			Put(basePath+post.Slug).
+			WithHeader("Content-Type", "application/json").
+			WithBody(reqBody).
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errValidationFailed, body.Code)
+		assert.Equal(t, "Post validation failed", body.Message)
 	})
 }

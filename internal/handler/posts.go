@@ -108,7 +108,7 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, server.RequestError{
-			Code:    errGetPostNotFound,
+			Code:    errPostNotFound,
 			Message: "Post not found",
 		})
 	}
@@ -185,5 +185,74 @@ func (h *Handler) GetPosts(ctx echo.Context, params server.GetPostsParams) error
 	return ctx.JSON(http.StatusOK, server.PostsListResponse{
 		Posts: postsItems,
 		Total: int(count),
+	})
+}
+
+func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
+	var req server.PostRequest
+	if err := ctx.Bind(&req); err != nil {
+		var errorMessage string
+		var echoErr *echo.HTTPError
+		if errors.As(err, &echoErr) {
+			errorMessage = fmt.Sprintf("%v", echoErr.Message)
+		}
+
+		return ctx.JSON(http.StatusBadRequest, server.RequestError{
+			Code:    errRequestBodyBinding,
+			Message: fmt.Sprintf("Error binding request body: %v", errorMessage),
+		})
+	}
+
+	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, server.RequestError{
+			Code:    errPostNotFound,
+			Message: "Post not found",
+		})
+	}
+
+	post.Title = req.Title
+	post.Description = req.Description
+	post.Content = req.Content
+
+	if req.Keywords != nil {
+		keywords := (*req.Keywords)[0]
+		for i := 1; i < len(*req.Keywords); i++ {
+			keywords += "," + (*req.Keywords)[i]
+		}
+		post.Keywords = keywords
+	}
+
+	if err := h.db.Models.Posts.Update(ctx.Request().Context(), post); err != nil {
+		switch {
+		case errors.Is(err, models.ErrDuplicate):
+			return ctx.JSON(http.StatusConflict, server.RequestError{
+				Code:    errDuplicatePost,
+				Message: "Post with this URL slug already exists",
+			})
+		case errors.Is(err, models.ErrValidationFailed):
+			return ctx.JSON(http.StatusBadRequest, server.RequestError{
+				Code:    errValidationFailed,
+				Message: "Post validation failed",
+			})
+
+		default:
+			return ctx.JSON(http.StatusInternalServerError, server.RequestError{
+				Code:    errUpdatePost,
+				Message: "Error updating post",
+			})
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, server.PostResponse{
+		Id:          post.ID,
+		Title:       post.Title,
+		Slug:        post.Slug,
+		Description: post.Description,
+		Content:     post.Content,
+		Keywords:    req.Keywords,
+		ReadingTime: post.ReadingTime,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
 	})
 }

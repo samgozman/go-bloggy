@@ -13,8 +13,9 @@ const (
 	errDuplicatePost      = "ERR_DUPLICATE_POST"
 	errCreatePost         = "ERR_CREATE_POST"
 	errValidationFailed   = "ERR_VALIDATION_FAILED"
-	errGetPostNotFound    = "ERR_GET_POST_NOT_FOUND"
+	errPostNotFound       = "ERR_POST_NOT_FOUND"
 	errParamValidation    = "ERR_PARAM_VALIDATION"
 	errGetPosts           = "ERR_GET_POSTS"
 	errGetPostsCount      = "ERR_GET_POSTS_COUNT"
+	errUpdatePost         = "ERR_UPDATE_POST"
 )

@@ -193,6 +193,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
+    put:
+      summary: Update a post by slug
+      description: Update a post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: The URL slug of the post
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostRequest"
+      headers:
+        Authorization:
+        description: JWT Auth token
+        required: true
+        schema:
+        type: string
+        format: bearer
+        example: Bearer <token>
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '401':
+          description: Unauthorized error if the user is not allowed to access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '404':
+          description: Not Found error if the post doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
 components:
   schemas:
     RequestError:
