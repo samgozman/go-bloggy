@@ -185,6 +185,28 @@ func TestPostDB(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Title", updatedPost.Title)
 	})
+
+	t.Run("Count", func(t *testing.T) {
+		t.Run("return count of all posts", func(t *testing.T) {
+			for i := 0; i < 5; i++ {
+				post := &Post{
+					UserID:      user.ID,
+					Slug:        uuid.New().String(),
+					Title:       "Test Title",
+					Description: "Test Description",
+					Content:     "Test Content",
+					Keywords:    "some",
+				}
+
+				err := postDB.Create(context.Background(), post)
+				assert.NoError(t, err)
+			}
+
+			count, err := postDB.Count(context.Background())
+			assert.NoError(t, err)
+			assert.Equal(t, int64(5), count)
+		})
+	})
 }
 
 func TestPost_Validate(t *testing.T) {
@@ -341,42 +363,5 @@ func TestPost_BeforeUpdate(t *testing.T) {
 
 		err := post.BeforeUpdate(nil)
 		assert.NoError(t, err)
-	})
-}
-
-func TestPostDB_Count(t *testing.T) {
-	db, err := NewTestDB("file::memory:")
-	assert.NoError(t, err)
-
-	// insert a user to db
-	user := &User{
-		ExternalID: uuid.New().String(),
-		Login:      uuid.New().String(),
-		AuthMethod: GitHubAuthMethod,
-	}
-
-	err = db.WithContext(context.Background()).Create(user).Error
-	assert.NoError(t, err)
-
-	postDB := NewPostDB(db)
-
-	t.Run("return count of all posts", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
-			post := &Post{
-				UserID:      user.ID,
-				Slug:        uuid.New().String(),
-				Title:       "Test Title",
-				Description: "Test Description",
-				Content:     "Test Content",
-				Keywords:    "some",
-			}
-
-			err := postDB.Create(context.Background(), post)
-			assert.NoError(t, err)
-		}
-
-		count, err := postDB.Count(context.Background())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(5), count)
 	})
 }
