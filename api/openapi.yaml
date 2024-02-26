@@ -208,7 +208,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PostRequest"
+              $ref: "#/components/schemas/PutPostRequest"
       headers:
         Authorization:
         description: JWT Auth token
@@ -300,6 +300,27 @@ components:
           type: string
           example: "### Hello, world!\n"
       required: [ "title", "slug", "description", "content" ]
+    PutPostRequest:
+      type: object
+      description: A post object to be updated
+      properties:
+        title:
+          type: string
+          example: "My first post"
+        description:
+          type: string
+          description: A short description of the post for the index page
+          example: "This is my first post"
+        keywords:
+          type: array
+          description: Keywords for the post for SEO and search purposes
+          items:
+            type: string
+            example: [ "golang", "openapi" ]
+        content:
+          type: string
+          example: "### Hello, world!\n"
+      required: [ "title", "description", "content" ]
     PostResponse:
       type: object
       description: A post object after it's been created or fetched

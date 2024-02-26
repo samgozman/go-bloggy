@@ -189,7 +189,7 @@ func (h *Handler) GetPosts(ctx echo.Context, params server.GetPostsParams) error
 }
 
 func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
-	var req server.PostRequest
+	var req server.PutPostRequest
 	if err := ctx.Bind(&req); err != nil {
 		var errorMessage string
 		var echoErr *echo.HTTPError

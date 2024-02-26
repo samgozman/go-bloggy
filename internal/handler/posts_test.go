@@ -448,7 +448,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := server.PutPostRequest{
 			Title:       "New Title",
 			Content:     "New Content to read in 1 second",
 			Description: "New Description",
@@ -496,9 +496,8 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := server.PutPostRequest{
 			Title:       "Test Title",
-			Slug:        uuid.New().String(),
 			Content:     "Test Content",
 			Description: "Test Description",
 			Keywords:    &[]string{"test1", "test2"},
@@ -526,9 +525,8 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := server.PutPostRequest{
 			Title:       "Test Title",
-			Slug:        post.Slug,
 			Content:     "Test Content",
 			Description: "Test Description",
 		}
@@ -555,7 +553,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := server.PutPostRequest{
 			Title:       "New Title",
 			Content:     "New Content to read in 1 second",
 			Description: "New Description",
