@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// AvgWordsPerMinute is the average number of words per minute a person can read.
+const AvgWordsPerMinute = 250
+
 // PostDB is the database for the post data.
 type PostDB struct {
 	conn *gorm.DB
@@ -29,6 +32,7 @@ type Post struct {
 	Description string `json:"description"`
 	Keywords    string `json:"keywords"` // Keywords are comma separated
 	Content     string `json:"content"`
+	ReadingTime int    `json:"reading_time"` // ReadingTime is the estimated time to read the post in seconds
 	UserID      int    `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -66,6 +70,9 @@ func (p *Post) BeforeCreate(_ *gorm.DB) error {
 		return fmt.Errorf("%w: %w", ErrValidationFailed, err)
 	}
 
+	// Note: store the reading time in a database for a faster retrieval list of posts (without content)
+	p.ReadingTime = int(p.CountReadingTime().Seconds())
+
 	return nil
 }
 
@@ -76,8 +83,17 @@ func (p *Post) BeforeUpdate(_ *gorm.DB) error {
 	}
 
 	p.UpdatedAt = time.Now()
+	p.ReadingTime = int(p.CountReadingTime().Seconds())
 
 	return nil
+}
+
+// CountReadingTime counts the reading time of the post.
+func (p *Post) CountReadingTime() time.Duration {
+	words := strings.Fields(p.Content)
+	readingTimeInMinutes := float64(len(words)) / AvgWordsPerMinute
+	readingTimeInSeconds := readingTimeInMinutes * 60
+	return time.Duration(readingTimeInSeconds) * time.Second
 }
 
 // Create creates a new Post.
@@ -107,7 +123,7 @@ func (db *PostDB) FindAll(ctx context.Context, page, perPage int) ([]*Post, erro
 	var posts []*Post
 	err := db.conn.
 		WithContext(ctx).
-		Select("slug, title, description, keywords, created_at").
+		Select("slug, title, description, keywords, reading_time, created_at").
 		Offset((page - 1) * perPage).
 		Limit(perPage).
 		Order("created_at desc").

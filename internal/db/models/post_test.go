@@ -117,7 +117,7 @@ func TestPostDB(t *testing.T) {
 				Slug:        uuid.New().String(),
 				Title:       "Test Title",
 				Description: "Test Description",
-				Content:     "Test Content",
+				Content:     "Test Content to read in 1 second",
 				Keywords:    "some",
 			}
 
@@ -138,6 +138,7 @@ func TestPostDB(t *testing.T) {
 				assert.Equal(t, "some", posts[i].Keywords)
 				assert.NotEmpty(t, posts[i].Slug)
 				assert.NotEmpty(t, posts[i].CreatedAt)
+				assert.Equal(t, 1, posts[i].ReadingTime)
 
 				// check that unnecessary fields are empty
 				assert.Empty(t, posts[i].Content)
@@ -328,12 +329,13 @@ func TestPost_BeforeCreate(t *testing.T) {
 			Slug:        uuid.New().String(),
 			Title:       "Test",
 			Description: "Test Description",
-			Content:     "Test Content",
+			Content:     "Test Content text to read in about ~2 second",
 			Keywords:    "test,content",
 		}
 
 		err := post.BeforeCreate(nil)
 		assert.NoError(t, err)
+		assert.Equal(t, 2, post.ReadingTime)
 	})
 }
 
@@ -357,11 +359,32 @@ func TestPost_BeforeUpdate(t *testing.T) {
 			Slug:        uuid.New().String(),
 			Title:       "Test",
 			Description: "Test Description",
-			Content:     "Test Content",
+			Content:     "Test Content to read in 1 second",
 			Keywords:    "test,content",
+			ReadingTime: 5,
 		}
 
 		err := post.BeforeUpdate(nil)
 		assert.NoError(t, err)
+		assert.NotZero(t, post.UpdatedAt)
+		assert.Equal(t, 1, post.ReadingTime) // reading time should be recalculated
+	})
+}
+
+func TestPost_CountReadingTime(t *testing.T) {
+	t.Run("return reading time", func(t *testing.T) {
+		post := &Post{
+			Content: "It should take 4 seconds to read with the average reading speed of 250 words per minute.",
+		}
+
+		assert.Equal(t, 4, int(post.CountReadingTime().Seconds()))
+	})
+
+	t.Run("return 0 if content is empty", func(t *testing.T) {
+		post := &Post{
+			Content: "",
+		}
+
+		assert.Zero(t, post.CountReadingTime().Seconds())
 	})
 }
