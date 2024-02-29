@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/handler"
@@ -22,6 +23,17 @@ func main() {
 
 	apiHandler := handler.NewHandler(ghService, jwtService, dnConn, config.AdminsExternalIDs)
 	server := echo.New()
+	server.Use(middleware.Logger())
+	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		// TODO: Pass allowed origins from config
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+	}))
 	server.Use(middlewares.JWTAuth(jwtService))
 
 	oapi.RegisterHandlers(server, apiHandler)
