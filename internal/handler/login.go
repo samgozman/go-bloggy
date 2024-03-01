@@ -73,9 +73,9 @@ func (h *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	return ctx.JSON(http.StatusOK, ctx.JSON(http.StatusOK, server.JWTToken{
+	return ctx.JSON(http.StatusOK, server.JWTToken{
 		Token: jwtToken,
-	}))
+	})
 }
 
 // PostLoginRefresh handles the request to refresh the JWT token.
