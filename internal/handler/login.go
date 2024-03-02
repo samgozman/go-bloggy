@@ -53,7 +53,7 @@ func (h *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 	}
 
 	// TODO: Store JWT expiration time in config
-	jwtToken, err := h.jwtService.CreateTokenString(strconv.Itoa(user.ID), time.Now().Add(time.Minute))
+	jwtToken, err := h.jwtService.CreateTokenString(strconv.Itoa(user.ID), time.Now().Add(2*time.Minute))
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
 			Code:    errCreateToken,
@@ -98,7 +98,7 @@ func (h *Handler) PostLoginRefresh(ctx echo.Context) error {
 	}
 
 	// TODO: Store JWT expiration time in config
-	newToken, err := h.jwtService.CreateTokenString(userID, time.Now().Add(time.Minute))
+	newToken, err := h.jwtService.CreateTokenString(userID, time.Now().Add(2*time.Minute))
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
 			Code:    errCreateToken,
