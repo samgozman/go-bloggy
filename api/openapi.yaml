@@ -154,9 +154,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PostsListResponse"
+                $ref: "#/components/schemas/PostsListResponse"
         '400':
           description: Bad Request
           content:
