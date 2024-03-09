@@ -21,7 +21,7 @@ func NewSubscriptionDB(conn *gorm.DB) *SubscriptionDB {
 type Subscription struct {
 	ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid"`
 	Email     string    `json:"email" gorm:"uniqueIndex"`
-	CreatedAt time.Time
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (s *Subscription) Validate() error {

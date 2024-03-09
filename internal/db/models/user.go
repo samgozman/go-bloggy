@@ -34,8 +34,8 @@ type User struct {
 	Login      string     `json:"login"`
 	AuthMethod AuthMethod `json:"auth_method"` // AuthMethod is the method of authentication used by the user
 	Posts      []Post     `json:"posts" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 func (u *User) Validate() error {
