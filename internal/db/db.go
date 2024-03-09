@@ -9,8 +9,9 @@ import (
 
 // Models is a collection of all models in the database.
 type Models struct {
-	Users *models.UserDB
-	Posts *models.PostDB
+	Users         *models.UserDB
+	Posts         *models.PostDB
+	Subscriptions *models.SubscriptionDB
 }
 
 // Database is the database connection.
@@ -45,8 +46,9 @@ func InitDatabase(dsn string) (*Database, error) {
 	return &Database{
 		conn: db,
 		Models: &Models{
-			Users: models.NewUserDB(db),
-			Posts: models.NewPostDB(db),
+			Users:         models.NewUserDB(db),
+			Posts:         models.NewPostDB(db),
+			Subscriptions: models.NewSubscriptionDB(db),
 		},
 	}, nil
 }
