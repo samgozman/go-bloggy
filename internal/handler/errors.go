@@ -18,4 +18,8 @@ const (
 	errGetPosts           = "ERR_GET_POSTS"
 	errGetPostsCount      = "ERR_GET_POSTS_COUNT"
 	errUpdatePost         = "ERR_UPDATE_POST"
+	errCreateSubscription = "ERR_CREATE_SUBSCRIPTION"
+	errGetSubscription    = "ERR_GET_SUBSCRIPTION"
+	errDeleteSubscription = "ERR_DELETE_SUBSCRIPTION"
+	errValidationEmail    = "ERR_VALIDATION_EMAIL"
 )

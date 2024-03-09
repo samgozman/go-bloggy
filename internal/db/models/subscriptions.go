@@ -54,7 +54,7 @@ func (db *SubscriptionDB) Create(ctx context.Context, s *Subscription) error {
 	return nil
 }
 
-func (db *SubscriptionDB) GetByID(ctx context.Context, id uuid.UUID) (*Subscription, error) {
+func (db *SubscriptionDB) GetByID(ctx context.Context, id string) (*Subscription, error) {
 	var s Subscription
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&s).Error
 	if err != nil {
@@ -74,7 +74,7 @@ func (db *SubscriptionDB) GetEmails(ctx context.Context) ([]string, error) {
 	return emails, nil
 }
 
-func (db *SubscriptionDB) Delete(ctx context.Context, id uuid.UUID) error {
+func (db *SubscriptionDB) Delete(ctx context.Context, id string) error {
 	res := db.conn.WithContext(ctx).Where("id = ?", id).Delete(&Subscription{})
 	if res.Error != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteSubscription, mapGormError(res.Error))

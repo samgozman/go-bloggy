@@ -59,13 +59,13 @@ func TestSubscriptionDB(t *testing.T) {
 		assert.NoError(t, err)
 
 		t.Run("should get the subscription", func(t *testing.T) {
-			retrievedSubscription, err := subscriptionDB.GetByID(context.Background(), subscription.ID)
+			retrievedSubscription, err := subscriptionDB.GetByID(context.Background(), subscription.ID.String())
 			assert.NoError(t, err)
 			assert.Equal(t, subscription.ID, retrievedSubscription.ID)
 		})
 
 		t.Run("should return error if not found", func(t *testing.T) {
-			_, err := subscriptionDB.GetByID(context.Background(), uuid.New())
+			_, err := subscriptionDB.GetByID(context.Background(), uuid.New().String())
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 		})
@@ -80,16 +80,16 @@ func TestSubscriptionDB(t *testing.T) {
 		assert.NoError(t, err)
 
 		t.Run("should delete the subscription", func(t *testing.T) {
-			err := subscriptionDB.Delete(context.Background(), subscription.ID)
+			err := subscriptionDB.Delete(context.Background(), subscription.ID.String())
 			assert.NoError(t, err)
 
-			_, err = subscriptionDB.GetByID(context.Background(), subscription.ID)
+			_, err = subscriptionDB.GetByID(context.Background(), subscription.ID.String())
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 		})
 
 		t.Run("should return error if not found", func(t *testing.T) {
-			err := subscriptionDB.Delete(context.Background(), uuid.New())
+			err := subscriptionDB.Delete(context.Background(), uuid.New().String())
 			assert.Error(t, err)
 			assert.ErrorIs(t, err, ErrNotFound)
 		})

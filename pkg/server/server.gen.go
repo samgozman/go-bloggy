@@ -100,6 +100,20 @@ type RequestError struct {
 	Message string `json:"message"`
 }
 
+// SubscriptionRequest defines model for SubscriptionRequest.
+type SubscriptionRequest struct {
+	// Captcha The captcha token
+	Captcha string `json:"captcha"`
+	Email   string `json:"email"`
+}
+
+// UnsubscribeRequest defines model for UnsubscribeRequest.
+type UnsubscribeRequest struct {
+	// Reason The reason for unsubscribing. Optional, do not plan to save it in DB, only for logging purposes.
+	Reason         *string `json:"reason,omitempty"`
+	SubscriptionId string  `json:"subscription_id"`
+}
+
 // GetPostsParams defines parameters for GetPosts.
 type GetPostsParams struct {
 	// Page Page number
@@ -117,6 +131,12 @@ type PostPostsJSONRequestBody = PostRequest
 
 // PutPostsSlugJSONRequestBody defines body for PutPostsSlug for application/json ContentType.
 type PutPostsSlugJSONRequestBody = PutPostRequest
+
+// DeleteSubscriptionsJSONRequestBody defines body for DeleteSubscriptions for application/json ContentType.
+type DeleteSubscriptionsJSONRequestBody = UnsubscribeRequest
+
+// PostSubscriptionsJSONRequestBody defines body for PostSubscriptions for application/json ContentType.
+type PostSubscriptionsJSONRequestBody = SubscriptionRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -141,6 +161,12 @@ type ServerInterface interface {
 	// Update a post by slug
 	// (PUT /posts/{slug})
 	PutPostsSlug(ctx echo.Context, slug string) error
+	// Unsubscribe from the blog
+	// (DELETE /subscriptions)
+	DeleteSubscriptions(ctx echo.Context) error
+	// Subscribe to the blog
+	// (POST /subscriptions)
+	PostSubscriptions(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -241,6 +267,24 @@ func (w *ServerInterfaceWrapper) PutPostsSlug(ctx echo.Context) error {
 	return err
 }
 
+// DeleteSubscriptions converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteSubscriptions(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteSubscriptions(ctx)
+	return err
+}
+
+// PostSubscriptions converts echo context to params.
+func (w *ServerInterfaceWrapper) PostSubscriptions(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostSubscriptions(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -276,40 +320,47 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/posts", wrapper.PostPosts)
 	router.GET(baseURL+"/posts/:slug", wrapper.GetPostsSlug)
 	router.PUT(baseURL+"/posts/:slug", wrapper.PutPostsSlug)
+	router.DELETE(baseURL+"/subscriptions", wrapper.DeleteSubscriptions)
+	router.POST(baseURL+"/subscriptions", wrapper.PostSubscriptions)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"P8tifSgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

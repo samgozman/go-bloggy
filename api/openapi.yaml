@@ -240,6 +240,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
+  /subscriptions:
+    post:
+      summary: Subscribe to the blog
+      description: Subscribe to the blog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRequest"
+        responses:
+          '201':
+            description: Created
+          '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/RequestError'
+    delete:
+      summary: Unsubscribe from the blog
+      description: Unsubscribe from the blog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnsubscribeRequest"
+        responses:
+          '204':
+            description: No Content
+          '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/RequestError'
 components:
   schemas:
     RequestError:
@@ -394,3 +431,25 @@ components:
           type: integer
           example: 1
       required: [ "posts", "total" ]
+    SubscriptionRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "example@example.com"
+        captcha:
+          type: string
+          example: "1234567890abcdef"
+          description: The captcha token
+      required: [ "email", "captcha" ]
+    UnsubscribeRequest:
+      type: object
+      properties:
+        subscription_id:
+          type: string
+          example: "12345678-90ab-cdef-1234-567890abcdef"
+        reason:
+          type: string
+          example: "I don't want to receive emails anymore"
+          description: The reason for unsubscribing. Optional, do not plan to save it in DB, only for logging purposes.
+      required: [ "subscription_id" ]

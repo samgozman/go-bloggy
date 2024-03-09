@@ -6,8 +6,8 @@ import (
 )
 
 // JWTAuth is a middleware that checks for JWT token in the request and validates it.
-// If token is not present or invalid, it returns 401 Unauthorized.
-// If token is valid, it adds user ID to the request context.
+// If the token is not present or invalid, it returns 401 Unauthorized.
+// If the token is valid, it adds user ID to the request context.
 //
 // It skips the middleware for all GET requests.
 func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
@@ -18,8 +18,9 @@ func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
 				return next(ctx)
 			}
 
-			// Skip for /login requests
-			if strings.HasPrefix(ctx.Request().URL.Path, "/login") {
+			// Skip for /login requests and /subscriptions requests
+			if strings.HasPrefix(ctx.Request().URL.Path, "/login") ||
+				strings.HasPrefix(ctx.Request().URL.Path, "/subscriptions") {
 				return next(ctx)
 			}
 
