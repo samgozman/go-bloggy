@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestPostDB(t *testing.T) {
@@ -74,7 +75,7 @@ func TestPostDB(t *testing.T) {
 		})
 	})
 
-	t.Run("GetPostByURL", func(t *testing.T) {
+	t.Run("GetBySlug", func(t *testing.T) {
 		anotherPost := &Post{
 			UserID:      user.ID,
 			Slug:        uuid.New().String(),
@@ -168,11 +169,12 @@ func TestPostDB(t *testing.T) {
 
 	t.Run("Update", func(t *testing.T) {
 		post := &Post{
-			UserID:      user.ID,
-			Slug:        uuid.New().String(),
-			Title:       "Test Title",
-			Description: "Test Description",
-			Content:     "Test Content",
+			UserID:              user.ID,
+			Slug:                uuid.New().String(),
+			Title:               "Test Title",
+			Description:         "Test Description",
+			Content:             "Test Content",
+			SentToSubscribersAt: time.Now(),
 		}
 
 		err := postDB.Create(context.Background(), post)
@@ -185,6 +187,8 @@ func TestPostDB(t *testing.T) {
 		updatedPost, err := postDB.GetBySlug(context.Background(), post.Slug)
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Title", updatedPost.Title)
+		assert.NotZero(t, updatedPost.UpdatedAt)
+		assert.NotZero(t, updatedPost.SentToSubscribersAt)
 	})
 }
 

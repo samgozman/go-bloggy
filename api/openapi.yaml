@@ -240,6 +240,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
+  /posts/{slug}/send-email:
+    post:
+      summary: Send a post by slug via email
+      description: Send a post announcement to all subscribers via email by slug
+      headers:
+        Authorization:
+        description: JWT Auth token
+        required: true
+        schema:
+          type: string
+          format: bearer
+          example: Bearer <token>
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: The URL slug of the post
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '404':
+          description: Not Found error if the post doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
+        '409':
+          description: Conflict error if post was already sent to the email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestError'
   /subscriptions:
     post:
       summary: Subscribe to the blog

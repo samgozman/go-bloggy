@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func Test_PostPosts(t *testing.T) {
@@ -576,5 +577,92 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errValidationFailed, body.Code)
 		assert.Equal(t, "Post validation failed", body.Message)
+	})
+}
+
+func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
+	conn, errDB := db.InitDatabase("file::memory:")
+	if errDB != nil {
+		t.Fatal(errDB)
+	}
+
+	// create user for test
+	user := &models.User{
+		ExternalID: uuid.New().String(),
+		AuthMethod: models.GitHubAuthMethod,
+		Login:      "testUser",
+	}
+	assert.NoError(t, conn.Models.Users.Upsert(context.Background(), user))
+
+	jwtToken := "token"
+
+	// create post for test
+	post := &models.Post{
+		UserID:      user.ID,
+		Title:       "Test Title",
+		Slug:        uuid.New().String(),
+		Content:     "Test Content to read in 1 second",
+		Description: "Test Description",
+		Keywords:    "test1,test2",
+	}
+	assert.NoError(t, conn.Models.Posts.Create(context.Background(), post))
+
+	e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+	mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
+	t.Run("201 - OK", func(t *testing.T) {
+		// create subscription for test
+		err := conn.Models.Subscriptions.Create(context.Background(), &models.Subscription{
+			Email: uuid.New().String() + "@test.com",
+		})
+		assert.NoError(t, err)
+
+		res := testutil.NewRequest().
+			Post("/posts/"+post.Slug+"/send-email").
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusCreated, res.Code())
+	})
+
+	t.Run("409 - errPostAlreadySent", func(t *testing.T) {
+		// create a post for test that was already sent
+		p := &models.Post{
+			UserID:              user.ID,
+			Title:               "Test Title",
+			Slug:                uuid.New().String(),
+			Content:             "Test Content to read in 1 second",
+			Description:         "Test Description",
+			SentToSubscribersAt: time.Now(),
+		}
+		assert.NoError(t, conn.Models.Posts.Create(context.Background(), p))
+
+		res := testutil.NewRequest().
+			Post("/posts/"+p.Slug+"/send-email").
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusConflict, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errPostAlreadySent, body.Code)
+		assert.Equal(t, "Post was already sent to subscribers. This can be done only once.", body.Message)
+	})
+
+	t.Run("404 - errPostNotFound", func(t *testing.T) {
+		res := testutil.NewRequest().
+			Post("/posts/not-found-slug/send-email").
+			WithJWSAuth(jwtToken).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusNotFound, res.Code())
+
+		var body server.RequestError
+		err := res.UnmarshalBodyToObject(&body)
+		assert.NoError(t, err)
+		assert.Equal(t, errPostNotFound, body.Code)
+		assert.Equal(t, "Post not found", body.Message)
 	})
 }

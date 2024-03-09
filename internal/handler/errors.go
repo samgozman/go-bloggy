@@ -23,4 +23,5 @@ const (
 	errDeleteSubscription = "ERR_DELETE_SUBSCRIPTION"
 	errValidationEmail    = "ERR_VALIDATION_EMAIL"
 	errValidationCaptcha  = "ERR_VALIDATION_CAPTCHA"
+	errPostAlreadySent    = "ERR_POST_ALREADY_SENT"
 )

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func (h *Handler) PostPosts(ctx echo.Context) error {
@@ -255,4 +256,52 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 	})
+}
+
+func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
+	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, server.RequestError{
+			Code:    errPostNotFound,
+			Message: "Post not found",
+		})
+	}
+
+	// check if post was already sent to subscribers
+	if !post.SentToSubscribersAt.IsZero() {
+		return ctx.JSON(http.StatusConflict, server.RequestError{
+			Code:    errPostAlreadySent,
+			Message: "Post was already sent to subscribers. This can be done only once.",
+		})
+	}
+
+	// get subscribers emails
+	emails, err := h.db.Models.Subscriptions.GetEmails(ctx.Request().Context())
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
+			Code:    errGetSubscription,
+			Message: "Error getting subscribers",
+		})
+	}
+
+	if len(emails) == 0 {
+		return ctx.JSON(http.StatusBadRequest, server.RequestError{
+			Code:    errGetSubscription,
+			Message: "No subscribers to send the post to.",
+		})
+	}
+
+	// TODO: Implement sending email
+
+	// Update post
+	post.SentToSubscribersAt = time.Now()
+	err = h.db.Models.Posts.Update(ctx.Request().Context(), post)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, server.RequestError{
+			Code:    errUpdatePost,
+			Message: "Error updating post",
+		})
+	}
+
+	return ctx.NoContent(http.StatusCreated)
 }

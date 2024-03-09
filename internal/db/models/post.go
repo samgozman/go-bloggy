@@ -26,16 +26,17 @@ func NewPostDB(conn *gorm.DB) *PostDB {
 
 // Post is the model for the post-data.
 type Post struct {
-	ID          int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Slug        string    `json:"slug" gorm:"uniqueIndex"` // Slug is the URL friendly version of the title
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Keywords    string    `json:"keywords"` // Keywords are comma separated
-	Content     string    `json:"content"`
-	ReadingTime int       `json:"reading_time"` // ReadingTime is the estimated time to read the post in seconds
-	UserID      int       `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID                  int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	Slug                string    `json:"slug" gorm:"uniqueIndex"` // Slug is the URL friendly version of the title
+	Title               string    `json:"title"`
+	Description         string    `json:"description"`
+	Keywords            string    `json:"keywords"` // Keywords are comma separated
+	Content             string    `json:"content"`
+	ReadingTime         int       `json:"reading_time"` // ReadingTime is the estimated time to read the post in seconds
+	UserID              int       `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
+	SentToSubscribersAt time.Time `json:"sent_to_subscribers_at" gorm:"default:null"` // If not null, the post was sent
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 func (p *Post) Validate() error {
