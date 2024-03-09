@@ -17,6 +17,9 @@ import (
 	"time"
 )
 
+const jwtToken = "jwtToken"
+const basePostsPath = "/posts"
+
 func Test_PostPosts(t *testing.T) {
 	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
@@ -31,8 +34,6 @@ func Test_PostPosts(t *testing.T) {
 	}
 	err := conn.Models.Users.Upsert(context.Background(), user)
 	assert.NoError(t, err)
-
-	jwtToken := "token"
 
 	t.Run("OK", func(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
@@ -49,7 +50,7 @@ func Test_PostPosts(t *testing.T) {
 		reqBody, _ := json.Marshal(req)
 
 		res := testutil.NewRequest().
-			Post("/posts").
+			Post(basePostsPath).
 			WithHeader("Content-Type", "application/json").
 			WithBody(reqBody).
 			WithJWSAuth(jwtToken).
@@ -99,7 +100,7 @@ func Test_PostPosts(t *testing.T) {
 
 		// Note: no Content-Type header
 		res := testutil.NewRequest().
-			Post("/posts").
+			Post(basePostsPath).
 			WithBody(reqBody).
 			WithJWSAuth(jwtToken).
 			GoWithHTTPHandler(t, e)
@@ -127,7 +128,7 @@ func Test_PostPosts(t *testing.T) {
 		reqBody, _ := json.Marshal(req)
 
 		res := testutil.NewRequest().
-			Post("/posts").
+			Post(basePostsPath).
 			WithHeader("Content-Type", "application/json").
 			WithBody(reqBody).
 			WithJWSAuth(jwtToken).
@@ -168,7 +169,7 @@ func Test_PostPosts(t *testing.T) {
 		assert.NoError(t, err)
 
 		res := testutil.NewRequest().
-			Post("/posts").
+			Post(basePostsPath).
 			WithHeader("Content-Type", "application/json").
 			WithBody(reqBody).
 			WithJWSAuth(jwtToken).
@@ -198,7 +199,7 @@ func Test_PostPosts(t *testing.T) {
 		reqBody, _ := json.Marshal(req)
 
 		res := testutil.NewRequest().
-			Post("/posts").
+			Post(basePostsPath).
 			WithHeader("Content-Type", "application/json").
 			WithBody(reqBody).
 			WithJWSAuth(jwtToken).
@@ -243,11 +244,9 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 	err = conn.Models.Posts.Create(context.Background(), post)
 	assert.NoError(t, err)
 
-	basePath := "/posts/"
-
 	t.Run("200 - OK", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get(basePath+post.Slug).
+			Get(basePostsPath+"/"+post.Slug).
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
@@ -269,7 +268,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 	t.Run("404 - Not Found", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts/not-found-slug").
+			Get(basePostsPath+"/not-found-slug").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusNotFound, res.Code())
@@ -283,7 +282,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 	t.Run("400 - errParamValidation", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts/&kek*").
+			Get(basePostsPath+"/&kek*").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
@@ -339,7 +338,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 	t.Run("200 - OK", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts").
+			Get(basePostsPath).
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
@@ -354,7 +353,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 	t.Run("OK - with limit and offset", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts?limit=1&page=1").
+			Get(basePostsPath+"?limit=1&page=1").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
@@ -374,7 +373,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 	t.Run("OK - zero posts per page", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts?limit=1&page=100").
+			Get(basePostsPath+"?limit=1&page=100").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
@@ -389,7 +388,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 	t.Run("400 - errParamValidation - limit", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts?limit=0").
+			Get(basePostsPath+"?limit=0").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
@@ -403,7 +402,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 	t.Run("400 - errParamValidation - page", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Get("/posts?page=0").
+			Get(basePostsPath+"?page=0").
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
@@ -431,8 +430,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 	err := conn.Models.Users.Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
-	basePath := "/posts/"
-	jwtToken := "token"
+	basePath := basePostsPath + "/"
 	// create post for test
 	post := &models.Post{
 		UserID:      user.ID,
@@ -594,8 +592,6 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 	}
 	assert.NoError(t, conn.Models.Users.Upsert(context.Background(), user))
 
-	jwtToken := "token"
-
 	// create post for test
 	post := &models.Post{
 		UserID:      user.ID,
@@ -618,7 +614,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		assert.NoError(t, err)
 
 		res := testutil.NewRequest().
-			Post("/posts/"+post.Slug+"/send-email").
+			Post(basePostsPath+"/"+post.Slug+"/send-email").
 			WithJWSAuth(jwtToken).
 			GoWithHTTPHandler(t, e)
 
@@ -638,7 +634,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		assert.NoError(t, conn.Models.Posts.Create(context.Background(), p))
 
 		res := testutil.NewRequest().
-			Post("/posts/"+p.Slug+"/send-email").
+			Post(basePostsPath+"/"+p.Slug+"/send-email").
 			WithJWSAuth(jwtToken).
 			GoWithHTTPHandler(t, e)
 
@@ -653,7 +649,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 
 	t.Run("404 - errPostNotFound", func(t *testing.T) {
 		res := testutil.NewRequest().
-			Post("/posts/not-found-slug/send-email").
+			Post(basePostsPath+"/not-found-slug/send-email").
 			WithJWSAuth(jwtToken).
 			GoWithHTTPHandler(t, e)
 
