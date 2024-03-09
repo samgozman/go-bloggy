@@ -23,7 +23,7 @@ func Test_PostSubscriptions(t *testing.T) {
 
 		rb, _ := json.Marshal(server.SubscriptionRequest{
 			Email:   "some@email.com",
-			Captcha: "some-captcha", // TODO: Add captcha support
+			Captcha: "some-captcha",
 		})
 
 		res := testutil.NewRequest().
@@ -45,7 +45,7 @@ func Test_PostSubscriptions(t *testing.T) {
 
 		rb, _ := json.Marshal(server.SubscriptionRequest{
 			Email:   "invalid-email",
-			Captcha: "some-captcha", // TODO: Add captcha support
+			Captcha: "some-captcha",
 		})
 
 		res := testutil.NewRequest().

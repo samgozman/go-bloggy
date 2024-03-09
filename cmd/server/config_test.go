@@ -13,6 +13,8 @@ func TestNewConfigFromEnv(t *testing.T) {
 	t.Setenv("PORT", "3000")
 	t.Setenv("DSN", "test_dsn")
 	t.Setenv("ADMINS_EXTERNAL_IDS", "test_admin1,test_admin2")
+	t.Setenv("ENVIRONMENT", "test_env")
+	t.Setenv("HCAPTCHA_SECRET", "test_h")
 
 	config := NewConfigFromEnv()
 
@@ -22,6 +24,8 @@ func TestNewConfigFromEnv(t *testing.T) {
 	assert.Equal(t, "3000", config.Port)
 	assert.Equal(t, "test_dsn", config.DSN)
 	assert.Equal(t, []string{"test_admin1", "test_admin2"}, config.AdminsExternalIDs)
+	assert.Equal(t, "test_env", config.Environment)
+	assert.Equal(t, "test_h", config.HCaptchaSecret)
 }
 
 func TestGetEnvOrPanic(t *testing.T) {

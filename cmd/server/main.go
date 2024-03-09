@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/kataras/hcaptcha"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/samgozman/go-bloggy/internal/db"
@@ -18,10 +19,19 @@ func main() {
 		panic(err)
 	}
 
+	// TODO: Replace initialization with google/wire
+
 	ghService := github.NewService(config.GithubClientID, config.GithubClientSecret)
 	jwtService := jwt.NewService(config.JWTSecretKey)
+	hcaptchaService := hcaptcha.New(config.HCaptchaSecret)
 
-	apiHandler := handler.NewHandler(ghService, jwtService, dnConn, config.AdminsExternalIDs)
+	apiHandler := handler.NewHandler(
+		ghService,
+		jwtService,
+		dnConn,
+		hcaptchaService,
+		config.AdminsExternalIDs,
+	)
 	server := echo.New()
 	server.Use(middleware.Logger())
 	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{

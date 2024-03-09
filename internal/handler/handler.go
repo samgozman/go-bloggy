@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/kataras/hcaptcha"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"time"
@@ -11,6 +12,7 @@ import (
 type Handler struct {
 	githubService     githubService
 	jwtService        jwtService
+	hcaptchaService   hcaptchaService
 	db                *db.Database
 	adminsExternalIDs []string
 }
@@ -20,12 +22,14 @@ func NewHandler(
 	g githubService,
 	j jwtService,
 	dbConn *db.Database,
+	h hcaptchaService,
 	adminsExternalIDs []string,
 ) *Handler {
 	return &Handler{
 		githubService:     g,
 		jwtService:        j,
 		db:                dbConn,
+		hcaptchaService:   h,
 		adminsExternalIDs: adminsExternalIDs,
 	}
 }
@@ -39,4 +43,8 @@ type githubService interface {
 type jwtService interface {
 	CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error)
 	ParseTokenString(tokenString string) (externalUserID string, err error)
+}
+
+type hcaptchaService interface {
+	VerifyToken(tkn string) (response hcaptcha.Response)
 }

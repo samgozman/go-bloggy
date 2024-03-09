@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/kataras/hcaptcha"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
@@ -40,15 +41,25 @@ func (m *MockJWTService) ParseTokenString(token string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+type MockHCaptchaService struct {
+	mock.Mock
+}
+
+func (m *MockHCaptchaService) VerifyToken(tkn string) (response hcaptcha.Response) {
+	args := m.Called(tkn) //nolint:typecheck
+	return args.Get(0).(hcaptcha.Response)
+}
+
 // registerHandlers creates a new echo instance and registers the handlers for testing.
 func registerHandlers(conn *db.Database, adminsIDs []string) (s *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
+	hc := new(MockHCaptchaService)
 
 	// Create echo instance
 	e := echo.New()
-	h := NewHandler(g, j, conn, adminsIDs)
+	h := NewHandler(g, j, conn, hc, adminsIDs)
 	e.Use(middlewares.JWTAuth(j))
 
 	server.RegisterHandlers(e, h)

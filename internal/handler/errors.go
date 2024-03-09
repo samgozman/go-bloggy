@@ -22,4 +22,5 @@ const (
 	errGetSubscription    = "ERR_GET_SUBSCRIPTION"
 	errDeleteSubscription = "ERR_DELETE_SUBSCRIPTION"
 	errValidationEmail    = "ERR_VALIDATION_EMAIL"
+	errValidationCaptcha  = "ERR_VALIDATION_CAPTCHA"
 )

@@ -7,6 +7,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/pkg/server"
 	"net/http"
+	"os"
 	"regexp"
 )
 
@@ -33,7 +34,15 @@ func (h *Handler) PostSubscriptions(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: Check captcha
+	// TODO: Get ENVIRONMENT from config
+	if os.Getenv("ENVIRONMENT") == "production" {
+		if hr := h.hcaptchaService.VerifyToken(req.Captcha); !hr.Success {
+			return ctx.JSON(http.StatusBadRequest, server.RequestError{
+				Code:    errValidationCaptcha,
+				Message: "Invalid captcha",
+			})
+		}
+	}
 
 	subscription := models.Subscription{
 		Email: req.Email,
