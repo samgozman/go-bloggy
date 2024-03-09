@@ -25,6 +25,12 @@ var (
 	ErrPostWrongKeywordsString = errors.New("ERR_POST_WRONG_KEYWORDS_STRING")
 	ErrPostInvalidSlug         = errors.New("ERR_POST_INVALID_SLUG")
 	ErrPostUserIDRequired      = errors.New("ERR_POST_USER_ID_REQUIRED")
+
+	ErrCreateSubscription        = errors.New("ERR_CREATE_SUBSCRIPTION")
+	ErrSubscriptionEmailRequired = errors.New("ERR_SUBSCRIPTION_EMAIL_REQUIRED")
+	ErrGetSubscription           = errors.New("ERR_GET_SUBSCRIPTION")
+	ErrGetSubscriptionEmails     = errors.New("ERR_GET_SUBSCRIPTION_EMAILS")
+	ErrDeleteSubscription        = errors.New("ERR_DELETE_SUBSCRIPTION")
 )
 
 // mapGormError maps gorm errors to application errors if possible.

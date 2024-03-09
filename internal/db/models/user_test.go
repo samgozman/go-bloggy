@@ -27,7 +27,7 @@ func NewTestDB(dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to enable foreign key constraints: %w", err)
 	}
 
-	err = db.AutoMigrate(&User{}, &Post{})
+	err = db.AutoMigrate(&User{}, &Post{}, &Subscription{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}

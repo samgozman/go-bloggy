@@ -37,7 +37,7 @@ func InitDatabase(dsn string) (*Database, error) {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&models.User{}, &models.Post{})
+	err = db.AutoMigrate(&models.User{}, &models.Post{}, &models.Subscription{})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMigrateDatabase, err)
 	}
