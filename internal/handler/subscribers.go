@@ -100,6 +100,41 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
+func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
+	var req api.ConfirmSubscriberRequest
+	if err := ctx.Bind(&req); err != nil {
+		var errorMessage string
+		var echoErr *echo.HTTPError
+		if errors.As(err, &echoErr) {
+			errorMessage = fmt.Sprintf("%v", echoErr.Message)
+		}
+
+		return ctx.JSON(http.StatusBadRequest, api.RequestError{
+			Code:    errRequestBodyBinding,
+			Message: fmt.Sprintf("Error binding request body: %v", errorMessage),
+		})
+	}
+
+	// Note: Token is used as subscription ID for simplicity
+	subscriptionID, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.Token)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, api.RequestError{
+			Code:    errGetSubscription,
+			Message: "Subscriber is not found or error getting subscription by ID",
+		})
+	}
+
+	subscriptionID.IsConfirmed = true
+	if err := h.db.Models.Subscribers.Update(ctx.Request().Context(), subscriptionID); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
+			Code:    errUpdateSubscription,
+			Message: "Error updating subscription",
+		})
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
 func isValidEmail(email string) bool {
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,24}$`)
 	return re.MatchString(email)

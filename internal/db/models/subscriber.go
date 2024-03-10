@@ -55,6 +55,15 @@ func (db *SubscribersDB) Create(ctx context.Context, s *Subscriber) error {
 	return nil
 }
 
+func (db *SubscribersDB) Update(ctx context.Context, s *Subscriber) error {
+	err := db.conn.WithContext(ctx).Save(s).Error
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrUpdateSubscription, mapGormError(err))
+	}
+
+	return nil
+}
+
 func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, error) {
 	var s Subscriber
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&s).Error

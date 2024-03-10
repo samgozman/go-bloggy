@@ -317,6 +317,25 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/RequestError'
+  /subscribers/confirm:
+    post:
+      summary: Confirm subscriber's email
+      description: Confirm subscriber's email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmSubscriberRequest"
+        responses:
+          '200':
+            description: OK
+          '400':
+            description: Bad Request error if the token is invalid
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/RequestError'
 components:
   schemas:
     RequestError:
@@ -493,3 +512,11 @@ components:
           example: "I don't want to receive emails anymore"
           description: The reason for unsubscribing. Optional, do not plan to save it in DB, only for logging purposes.
       required: [ "subscription_id" ]
+    ConfirmSubscriberRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "1234567890abcdef"
+          description: The confirmation token
+      required: [ "token" ]

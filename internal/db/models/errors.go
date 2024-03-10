@@ -31,6 +31,7 @@ var (
 	ErrGetSubscription           = errors.New("ERR_GET_SUBSCRIPTION")
 	ErrGetSubscriptionEmails     = errors.New("ERR_GET_SUBSCRIPTION_EMAILS")
 	ErrDeleteSubscription        = errors.New("ERR_DELETE_SUBSCRIPTION")
+	ErrUpdateSubscription        = errors.New("ERR_UPDATE_SUBSCRIPTION")
 )
 
 // mapGormError maps gorm errors to application errors if possible.

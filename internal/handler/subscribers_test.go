@@ -115,3 +115,56 @@ func Test_DeleteSubscribers(t *testing.T) {
 		assert.Equal(t, errRes.Message, "Subscriber is not found or error getting subscription by ID")
 	})
 }
+
+func Test_PostSubscribersConfirm(t *testing.T) {
+	conn, errDB := db.InitDatabase("file::memory:")
+	if errDB != nil {
+		t.Fatal(errDB)
+	}
+
+	t.Run("OK - NoContent", func(t *testing.T) {
+		e, _, _ := registerHandlers(conn, nil)
+
+		sub := models.Subscriber{
+			Email:       "some@email.space",
+			IsConfirmed: false,
+		}
+
+		// Create a subscription
+		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		assert.NoError(t, err)
+
+		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
+			Token: sub.ID.String(),
+		})
+
+		res := testutil.NewRequest().
+			WithHeader("Content-Type", "application/json").
+			Post("/subscribers/confirm").
+			WithBody(rb).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		// Check that the subscription was confirmed
+		retrievedSubscription, err := conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
+		assert.NoError(t, err)
+		assert.True(t, retrievedSubscription.IsConfirmed)
+	})
+
+	t.Run("StatusBadRequest - not found", func(t *testing.T) {
+		e, _, _ := registerHandlers(conn, nil)
+
+		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
+			Token: "ce247e1d-a371-42fc-b36b-26b566c0096c",
+		})
+
+		res := testutil.NewRequest().
+			WithHeader("Content-Type", "application/json").
+			Post("/subscribers/confirm").
+			WithBody(rb).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code())
+	})
+}
