@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/oapi-codegen/testutil"
+	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/internal/github"
-	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"math/rand/v2"
@@ -45,7 +45,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			On("CreateTokenString", ghUserID, mock.Anything).
 			Return("someToken", nil)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -59,7 +59,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		mockGithubService.AssertExpectations(t)
 		mockJwtService.AssertExpectations(t)
 
-		var body server.JWTToken
+		var body api.JWTToken
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, body.Token)
@@ -102,7 +102,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -116,7 +116,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		mockGithubService.AssertExpectations(t)
 		mockJwtService.AssertExpectations(t)
 
-		var body server.JWTToken
+		var body api.JWTToken
 		err = res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, body.Token)
@@ -127,7 +127,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		adminExternalID := rand.Int()
 		e, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "", // empty code
 		})
 
@@ -139,7 +139,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -155,7 +155,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			On("ExchangeCodeForToken", mock.Anything, "123").
 			Return("", assert.AnError)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -168,7 +168,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
 		mockGithubService.AssertExpectations(t)
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -188,7 +188,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			On("GetUserInfo", mock.Anything, "someToken").
 			Return(&github.UserInfo{}, assert.AnError)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -201,7 +201,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
 		mockGithubService.AssertExpectations(t)
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -221,7 +221,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -248,7 +248,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			On("CreateTokenString", strconv.Itoa(adminExternalID), mock.Anything).
 			Return("", assert.AnError)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -262,7 +262,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		mockGithubService.AssertExpectations(t)
 		mockJwtService.AssertExpectations(t)
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -285,7 +285,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 				Login: "testUser",
 			}, nil)
 
-		rb, _ := json.Marshal(server.GitHubAuthRequestBody{
+		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "123",
 		})
 
@@ -297,7 +297,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 		assert.Equal(t, http.StatusForbidden, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -326,7 +326,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.Code())
 		mockJwtService.AssertExpectations(t)
 
-		var body server.JWTToken
+		var body api.JWTToken
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, "someToken", body.Token)
@@ -339,7 +339,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -362,7 +362,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, res.Code())
 		mockJwtService.AssertExpectations(t)
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 
@@ -389,7 +389,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, res.Code())
 		mockJwtService.AssertExpectations(t)
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 

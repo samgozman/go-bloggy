@@ -3,10 +3,10 @@ package handler
 import (
 	"context"
 	"github.com/kataras/hcaptcha"
+	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
-	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/mock"
 	"time"
 
@@ -62,7 +62,7 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (s *echo.Echo, gith
 	h := NewHandler(g, j, conn, hc, adminsIDs)
 	e.Use(middlewares.JWTAuth(j))
 
-	server.RegisterHandlers(e, h)
+	api.RegisterHandlers(e, h)
 
 	return e, g, j
 }

@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/testutil"
+	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
@@ -39,7 +39,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := api.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content to read in 1 second",
@@ -58,7 +58,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, res.Code())
 
-		var post server.PostResponse
+		var post api.PostResponse
 		err := res.UnmarshalBodyToObject(&post)
 		assert.NoError(t, err)
 
@@ -88,7 +88,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := api.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -107,7 +107,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errRequestBodyBinding, body.Code)
@@ -118,7 +118,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(uuid.New().String(), nil)
 
-		req := server.PostRequest{
+		req := api.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -136,7 +136,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errGetUser, body.Code)
@@ -147,7 +147,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		post1 := server.PostRequest{
+		post1 := api.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -177,7 +177,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusConflict, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err = res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errDuplicatePost, body.Code)
@@ -188,7 +188,7 @@ func Test_PostPosts(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PostRequest{
+		req := api.PostRequest{
 			Title:       "Test Title",
 			Slug:        uuid.New().String(),
 			Content:     "Test Content",
@@ -207,7 +207,7 @@ func Test_PostPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errValidationFailed, body.Code)
@@ -251,7 +251,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Code())
 
-		var postRes server.PostResponse
+		var postRes api.PostResponse
 		err := res.UnmarshalBodyToObject(&postRes)
 		assert.NoError(t, err)
 
@@ -273,7 +273,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errPostNotFound, body.Code)
@@ -287,7 +287,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errParamValidation, body.Code)
@@ -343,7 +343,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Code())
 
-		var postsRes server.PostsListResponse
+		var postsRes api.PostsListResponse
 		err := res.UnmarshalBodyToObject(&postsRes)
 		assert.NoError(t, err)
 
@@ -358,7 +358,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Code())
 
-		var postsRes server.PostsListResponse
+		var postsRes api.PostsListResponse
 		err := res.UnmarshalBodyToObject(&postsRes)
 		assert.NoError(t, err)
 
@@ -378,7 +378,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Code())
 
-		var postsRes server.PostsListResponse
+		var postsRes api.PostsListResponse
 		err := res.UnmarshalBodyToObject(&postsRes)
 		assert.NoError(t, err)
 
@@ -393,7 +393,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errParamValidation, body.Code)
@@ -407,7 +407,7 @@ func TestHandler_GetPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errParamValidation, body.Code)
@@ -447,7 +447,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PutPostRequest{
+		req := api.PutPostRequest{
 			Title:       "New Title",
 			Content:     "New Content to read in 1 second",
 			Description: "New Description",
@@ -465,7 +465,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Code())
 
-		var postRes server.PostResponse
+		var postRes api.PostResponse
 		err := res.UnmarshalBodyToObject(&postRes)
 		assert.NoError(t, err)
 
@@ -495,7 +495,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PutPostRequest{
+		req := api.PutPostRequest{
 			Title:       "Test Title",
 			Content:     "Test Content",
 			Description: "Test Description",
@@ -513,7 +513,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errRequestBodyBinding, body.Code)
@@ -524,7 +524,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PutPostRequest{
+		req := api.PutPostRequest{
 			Title:       "Test Title",
 			Content:     "Test Content",
 			Description: "Test Description",
@@ -541,7 +541,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errPostNotFound, body.Code)
@@ -552,7 +552,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		e, _, mockJwtService := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
-		req := server.PutPostRequest{
+		req := api.PutPostRequest{
 			Title:       "New Title",
 			Content:     "New Content to read in 1 second",
 			Description: "New Description",
@@ -570,7 +570,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errValidationFailed, body.Code)
@@ -640,7 +640,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusConflict, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errPostAlreadySent, body.Code)
@@ -655,7 +655,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, res.Code())
 
-		var body server.RequestError
+		var body api.RequestError
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errPostNotFound, body.Code)

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/oapi-codegen/testutil"
+	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"github.com/samgozman/go-bloggy/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -21,7 +21,7 @@ func Test_PostSubscriptions(t *testing.T) {
 	t.Run("Created", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		rb, _ := json.Marshal(server.SubscriptionRequest{
+		rb, _ := json.Marshal(api.SubscriptionRequest{
 			Email:   "some@email.com",
 			Captcha: "some-captcha",
 		})
@@ -43,7 +43,7 @@ func Test_PostSubscriptions(t *testing.T) {
 	t.Run("BadRequest", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		rb, _ := json.Marshal(server.SubscriptionRequest{
+		rb, _ := json.Marshal(api.SubscriptionRequest{
 			Email:   "invalid-email",
 			Captcha: "some-captcha",
 		})
@@ -75,7 +75,7 @@ func Test_DeleteSubscriptions(t *testing.T) {
 		err := conn.Models.Subscriptions.Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
-		rb, _ := json.Marshal(server.UnsubscribeRequest{
+		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: sub.ID.String(),
 		})
 
@@ -96,7 +96,7 @@ func Test_DeleteSubscriptions(t *testing.T) {
 	t.Run("StatusBadRequest ", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		rb, _ := json.Marshal(server.UnsubscribeRequest{
+		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: "f87c5cc0-ec7b-41eb-8d23-0abe0938efd2",
 		})
 
@@ -108,7 +108,7 @@ func Test_DeleteSubscriptions(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 
-		var errRes server.RequestError
+		var errRes api.RequestError
 		err := res.UnmarshalBodyToObject(&errRes)
 		assert.NoError(t, err)
 		assert.Equal(t, errRes.Code, errGetSubscription)

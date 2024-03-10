@@ -4,12 +4,12 @@ import (
 	"github.com/kataras/hcaptcha"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	oapi "github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/handler"
 	"github.com/samgozman/go-bloggy/internal/jwt"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
-	oapi "github.com/samgozman/go-bloggy/pkg/server"
 )
 
 func main() {
