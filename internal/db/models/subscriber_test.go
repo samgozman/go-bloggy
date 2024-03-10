@@ -16,13 +16,15 @@ func TestSubscribersDB(t *testing.T) {
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new subscription", func(t *testing.T) {
 			subscription := &Subscriber{
-				Email: genEmail(),
+				Email:       genEmail(),
+				IsConfirmed: true,
 			}
 
 			err := subscriptionDB.Create(context.Background(), subscription)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, subscription.ID)
 			assert.NotZero(t, subscription.CreatedAt)
+			assert.True(t, subscription.IsConfirmed)
 		})
 
 		t.Run("return error if email is not unique", func(t *testing.T) {
@@ -62,6 +64,7 @@ func TestSubscribersDB(t *testing.T) {
 			retrievedSubscription, err := subscriptionDB.GetByID(context.Background(), subscription.ID.String())
 			assert.NoError(t, err)
 			assert.Equal(t, subscription.ID, retrievedSubscription.ID)
+			assert.False(t, retrievedSubscription.IsConfirmed)
 		})
 
 		t.Run("should return error if not found", func(t *testing.T) {
@@ -95,18 +98,19 @@ func TestSubscribersDB(t *testing.T) {
 		})
 	})
 
-	t.Run("GetEmails", func(t *testing.T) {
+	t.Run("GetConfirmedEmails", func(t *testing.T) {
 		t.Run("should return a list of emails", func(t *testing.T) {
 			// Create a few subscriptions
 			for i := 0; i < 3; i++ {
 				subscription := &Subscriber{
-					Email: genEmail(),
+					Email:       genEmail(),
+					IsConfirmed: true,
 				}
 				err := subscriptionDB.Create(context.Background(), subscription)
 				assert.NoError(t, err)
 			}
 
-			emails, err := subscriptionDB.GetEmails(context.Background())
+			emails, err := subscriptionDB.GetConfirmedEmails(context.Background())
 			assert.NoError(t, err)
 			assert.NotEmpty(t, emails)
 			// check that all emails are unique

@@ -19,9 +19,10 @@ func NewSubscribersDB(conn *gorm.DB) *SubscribersDB {
 }
 
 type Subscriber struct {
-	ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid"`
-	Email     string    `json:"email" gorm:"uniqueIndex"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uuid.UUID `json:"id" gorm:"primaryKey;type:uuid"`
+	Email       string    `json:"email" gorm:"uniqueIndex"`
+	IsConfirmed bool      `json:"is_confirmed"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (s *Subscriber) Validate() error {
@@ -64,9 +65,12 @@ func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, e
 	return &s, nil
 }
 
-func (db *SubscribersDB) GetEmails(ctx context.Context) ([]string, error) {
+func (db *SubscribersDB) GetConfirmedEmails(ctx context.Context) ([]string, error) {
 	var emails []string
-	err := db.conn.WithContext(ctx).Model(&Subscriber{}).Pluck("email", &emails).Error
+	err := db.conn.WithContext(ctx).
+		Model(&Subscriber{}).
+		Where("is_confirmed = ?", true).
+		Pluck("email", &emails).Error
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetSubscriptionEmails, mapGormError(err))
 	}

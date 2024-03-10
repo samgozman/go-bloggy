@@ -276,7 +276,7 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 	}
 
 	// get subscribers emails
-	emails, err := h.db.Models.Subscribers.GetEmails(ctx.Request().Context())
+	emails, err := h.db.Models.Subscribers.GetConfirmedEmails(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errGetSubscription,

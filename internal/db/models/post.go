@@ -33,7 +33,7 @@ type Post struct {
 	Keywords            string    `json:"keywords"` // Keywords are comma separated
 	Content             string    `json:"content"`
 	ReadingTime         int       `json:"reading_time"` // ReadingTime is the estimated time to read the post in seconds
-	UserID              int       `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
+	UserID              int       `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE;foreignKey:ID;references:ID"`
 	SentToSubscribersAt time.Time `json:"sent_to_subscribers_at" gorm:"default:null"` // If not null, the post was sent
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`

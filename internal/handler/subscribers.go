@@ -45,7 +45,8 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 	}
 
 	subscription := models.Subscriber{
-		Email: req.Email,
+		Email:       req.Email,
+		IsConfirmed: false,
 	}
 
 	if err := h.db.Models.Subscribers.Create(ctx.Request().Context(), &subscription); err != nil {
@@ -57,6 +58,9 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 			})
 		}
 	}
+
+	// Note: for confirmation code can be used internal ID of the subscription just for simplicity
+	// TODO: Send confirmation email with a link to confirm subscription
 
 	return ctx.NoContent(http.StatusCreated)
 }
