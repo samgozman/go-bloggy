@@ -1,6 +1,6 @@
-package: server
+package: api
 generate:
   echo-server: true
-  models: true # Models specifies whether to generate type definitions
+  models: true # Models specify whether to generate type definitions
   embedded-spec: true # Embed the swagger spec into the generated code
-output: server.gen.go
+output: api.gen.go
