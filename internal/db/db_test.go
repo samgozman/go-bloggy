@@ -16,7 +16,7 @@ func TestInitDatabase(t *testing.T) {
 		db, err := InitDatabase("file::memory:")
 		assert.NoError(t, err)
 		assert.NotNil(t, db)
-		assert.NotNil(t, db.conn)
+		assert.NotNil(t, db.Conn)
 		assert.NotNil(t, db.Models)
 		assert.NotNil(t, db.Models.Users)
 		assert.NotNil(t, db.Models.Posts)

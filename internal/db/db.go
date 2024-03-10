@@ -16,7 +16,7 @@ type Models struct {
 
 // Database is the database connection.
 type Database struct {
-	conn   *gorm.DB
+	Conn   *gorm.DB
 	Models *Models
 }
 
@@ -44,7 +44,7 @@ func InitDatabase(dsn string) (*Database, error) {
 	}
 
 	return &Database{
-		conn: db,
+		Conn: db,
 		Models: &Models{
 			Users:       models.NewUserDB(db),
 			Posts:       models.NewPostDB(db),

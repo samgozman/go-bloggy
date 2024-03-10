@@ -35,7 +35,10 @@ func Test_PostSubscribers(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, res.Code())
 
 		// Check that the subscription was created
-		emails, err := conn.Models.Subscribers.GetConfirmedEmails(context.Background())
+		var emails []string
+		err := conn.Conn.Model(&models.Subscriber{}).
+			Where("email = ?", "some@email.com").
+			Pluck("email", &emails).Error
 		assert.NoError(t, err)
 		assert.Contains(t, emails, "some@email.com")
 	})
