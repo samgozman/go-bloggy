@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSubscriptionDB(t *testing.T) {
+func TestSubscribersDB(t *testing.T) {
 	db, err := NewTestDB("file::memory:")
 	assert.NoError(t, err)
 
