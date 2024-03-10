@@ -20,6 +20,6 @@ func TestInitDatabase(t *testing.T) {
 		assert.NotNil(t, db.Models)
 		assert.NotNil(t, db.Models.Users)
 		assert.NotNil(t, db.Models.Posts)
-		assert.NotNil(t, db.Models.Subscriptions)
+		assert.NotNil(t, db.Models.Subscribers)
 	})
 }

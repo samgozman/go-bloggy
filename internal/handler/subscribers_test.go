@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func Test_PostSubscriptions(t *testing.T) {
+func Test_PostSubscribers(t *testing.T) {
 	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
@@ -21,21 +21,21 @@ func Test_PostSubscriptions(t *testing.T) {
 	t.Run("Created", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		rb, _ := json.Marshal(api.SubscriptionRequest{
+		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "some@email.com",
 			Captcha: "some-captcha",
 		})
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
-			Post("/subscriptions").
+			Post("/subscribers").
 			WithBody(rb).
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusCreated, res.Code())
 
 		// Check that the subscription was created
-		emails, err := conn.Models.Subscriptions.GetEmails(context.Background())
+		emails, err := conn.Models.Subscribers.GetEmails(context.Background())
 		assert.NoError(t, err)
 		assert.Contains(t, emails, "some@email.com")
 	})
@@ -43,14 +43,14 @@ func Test_PostSubscriptions(t *testing.T) {
 	t.Run("BadRequest", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		rb, _ := json.Marshal(api.SubscriptionRequest{
+		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "invalid-email",
 			Captcha: "some-captcha",
 		})
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
-			Post("/subscriptions").
+			Post("/subscribers").
 			WithBody(rb).
 			GoWithHTTPHandler(t, e)
 
@@ -58,7 +58,7 @@ func Test_PostSubscriptions(t *testing.T) {
 	})
 }
 
-func Test_DeleteSubscriptions(t *testing.T) {
+func Test_DeleteSubscribers(t *testing.T) {
 	conn, errDB := db.InitDatabase("file::memory:")
 	if errDB != nil {
 		t.Fatal(errDB)
@@ -67,12 +67,12 @@ func Test_DeleteSubscriptions(t *testing.T) {
 	t.Run("NoContent", func(t *testing.T) {
 		e, _, _ := registerHandlers(conn, nil)
 
-		sub := models.Subscription{
+		sub := models.Subscriber{
 			Email: "some@email.space",
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscriptions.Create(context.Background(), &sub)
+		err := conn.Models.Subscribers.Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
@@ -81,14 +81,14 @@ func Test_DeleteSubscriptions(t *testing.T) {
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
-			Delete("/subscriptions").
+			Delete("/subscribers").
 			WithBody(rb).
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusNoContent, res.Code())
 
 		// Check that the subscription was deleted
-		_, err = conn.Models.Subscriptions.GetByID(context.Background(), sub.ID.String())
+		_, err = conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, models.ErrNotFound)
 	})
@@ -102,7 +102,7 @@ func Test_DeleteSubscriptions(t *testing.T) {
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
-			Delete("/subscriptions").
+			Delete("/subscribers").
 			WithBody(rb).
 			GoWithHTTPHandler(t, e)
 
@@ -112,6 +112,6 @@ func Test_DeleteSubscriptions(t *testing.T) {
 		err := res.UnmarshalBodyToObject(&errRes)
 		assert.NoError(t, err)
 		assert.Equal(t, errRes.Code, errGetSubscription)
-		assert.Equal(t, errRes.Message, "Subscription is not found or error getting subscription by ID")
+		assert.Equal(t, errRes.Message, "Subscriber is not found or error getting subscription by ID")
 	})
 }

@@ -11,11 +11,11 @@ func TestSubscriptionDB(t *testing.T) {
 	db, err := NewTestDB("file::memory:")
 	assert.NoError(t, err)
 
-	subscriptionDB := NewSubscriptionDB(db)
+	subscriptionDB := NewSubscribersDB(db)
 
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new subscription", func(t *testing.T) {
-			subscription := &Subscription{
+			subscription := &Subscriber{
 				Email: genEmail(),
 			}
 
@@ -26,7 +26,7 @@ func TestSubscriptionDB(t *testing.T) {
 		})
 
 		t.Run("return error if email is not unique", func(t *testing.T) {
-			subscription := &Subscription{
+			subscription := &Subscriber{
 				Email: genEmail(),
 			}
 
@@ -39,7 +39,7 @@ func TestSubscriptionDB(t *testing.T) {
 		})
 
 		t.Run("return error if email is empty", func(t *testing.T) {
-			subscription := &Subscription{
+			subscription := &Subscriber{
 				Email: "",
 			}
 
@@ -51,7 +51,7 @@ func TestSubscriptionDB(t *testing.T) {
 	})
 
 	t.Run("GetByID", func(t *testing.T) {
-		subscription := &Subscription{
+		subscription := &Subscriber{
 			Email: genEmail(),
 		}
 
@@ -72,7 +72,7 @@ func TestSubscriptionDB(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		subscription := &Subscription{
+		subscription := &Subscriber{
 			Email: genEmail(),
 		}
 
@@ -99,7 +99,7 @@ func TestSubscriptionDB(t *testing.T) {
 		t.Run("should return a list of emails", func(t *testing.T) {
 			// Create a few subscriptions
 			for i := 0; i < 3; i++ {
-				subscription := &Subscription{
+				subscription := &Subscriber{
 					Email: genEmail(),
 				}
 				err := subscriptionDB.Create(context.Background(), subscription)

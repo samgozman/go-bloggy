@@ -11,8 +11,8 @@ import (
 	"regexp"
 )
 
-func (h *Handler) PostSubscriptions(ctx echo.Context) error {
-	var req api.SubscriptionRequest
+func (h *Handler) PostSubscribers(ctx echo.Context) error {
+	var req api.CreateSubscriberRequest
 	if err := ctx.Bind(&req); err != nil {
 		var errorMessage string
 		var echoErr *echo.HTTPError
@@ -44,11 +44,11 @@ func (h *Handler) PostSubscriptions(ctx echo.Context) error {
 		}
 	}
 
-	subscription := models.Subscription{
+	subscription := models.Subscriber{
 		Email: req.Email,
 	}
 
-	if err := h.db.Models.Subscriptions.Create(ctx.Request().Context(), &subscription); err != nil {
+	if err := h.db.Models.Subscribers.Create(ctx.Request().Context(), &subscription); err != nil {
 		// Note: we shouldn't tell duplicate error to the user for security reasons
 		if !errors.Is(err, models.ErrDuplicate) {
 			return ctx.JSON(http.StatusInternalServerError, api.RequestError{
@@ -61,7 +61,7 @@ func (h *Handler) PostSubscriptions(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusCreated)
 }
 
-func (h *Handler) DeleteSubscriptions(ctx echo.Context) error {
+func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 	var req api.UnsubscribeRequest
 	if err := ctx.Bind(&req); err != nil {
 		var errorMessage string
@@ -76,15 +76,15 @@ func (h *Handler) DeleteSubscriptions(ctx echo.Context) error {
 		})
 	}
 
-	subscriptionID, err := h.db.Models.Subscriptions.GetByID(ctx.Request().Context(), req.SubscriptionId)
+	subscriptionID, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.SubscriptionId)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetSubscription,
-			Message: "Subscription is not found or error getting subscription by ID",
+			Message: "Subscriber is not found or error getting subscription by ID",
 		})
 	}
 
-	if err := h.db.Models.Subscriptions.Delete(ctx.Request().Context(), subscriptionID.ID.String()); err != nil {
+	if err := h.db.Models.Subscribers.Delete(ctx.Request().Context(), subscriptionID.ID.String()); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errDeleteSubscription,
 			Message: "Error deleting subscription",

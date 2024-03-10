@@ -280,16 +280,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestError'
-  /subscriptions:
+  /subscribers:
     post:
-      summary: Subscribe to the blog
-      description: Subscribe to the blog
+      summary: Create subscriber for the blog
+      description: Create subscriber for the blog
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SubscriptionRequest"
+              $ref: "#/components/schemas/CreateSubscriberRequest"
         responses:
           '201':
             description: Created
@@ -471,7 +471,7 @@ components:
           type: integer
           example: 1
       required: [ "posts", "total" ]
-    SubscriptionRequest:
+    CreateSubscriberRequest:
       type: object
       properties:
         email:

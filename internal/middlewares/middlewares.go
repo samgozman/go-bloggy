@@ -18,9 +18,9 @@ func JWTAuth(jwtService jwtService) echo.MiddlewareFunc {
 				return next(ctx)
 			}
 
-			// Skip for /login requests and /subscriptions requests
+			// Skip for /login requests and /subscribers requests
 			if strings.HasPrefix(ctx.Request().URL.Path, "/login") ||
-				strings.HasPrefix(ctx.Request().URL.Path, "/subscriptions") {
+				strings.HasPrefix(ctx.Request().URL.Path, "/subscribers") {
 				return next(ctx)
 			}
 

@@ -8,30 +8,30 @@ import (
 	"time"
 )
 
-type SubscriptionDB struct {
+type SubscribersDB struct {
 	conn *gorm.DB
 }
 
-func NewSubscriptionDB(conn *gorm.DB) *SubscriptionDB {
-	return &SubscriptionDB{
+func NewSubscribersDB(conn *gorm.DB) *SubscribersDB {
+	return &SubscribersDB{
 		conn: conn,
 	}
 }
 
-type Subscription struct {
+type Subscriber struct {
 	ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid"`
 	Email     string    `json:"email" gorm:"uniqueIndex"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (s *Subscription) Validate() error {
+func (s *Subscriber) Validate() error {
 	if s.Email == "" {
 		return ErrSubscriptionEmailRequired
 	}
 	return nil
 }
 
-func (s *Subscription) BeforeCreate(_ *gorm.DB) error {
+func (s *Subscriber) BeforeCreate(_ *gorm.DB) error {
 	err := s.Validate()
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrValidationFailed, err)
@@ -45,7 +45,7 @@ func (s *Subscription) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
-func (db *SubscriptionDB) Create(ctx context.Context, s *Subscription) error {
+func (db *SubscribersDB) Create(ctx context.Context, s *Subscriber) error {
 	err := db.conn.WithContext(ctx).Create(s).Error
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrCreateSubscription, mapGormError(err))
@@ -54,8 +54,8 @@ func (db *SubscriptionDB) Create(ctx context.Context, s *Subscription) error {
 	return nil
 }
 
-func (db *SubscriptionDB) GetByID(ctx context.Context, id string) (*Subscription, error) {
-	var s Subscription
+func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, error) {
+	var s Subscriber
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&s).Error
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetSubscription, mapGormError(err))
@@ -64,9 +64,9 @@ func (db *SubscriptionDB) GetByID(ctx context.Context, id string) (*Subscription
 	return &s, nil
 }
 
-func (db *SubscriptionDB) GetEmails(ctx context.Context) ([]string, error) {
+func (db *SubscribersDB) GetEmails(ctx context.Context) ([]string, error) {
 	var emails []string
-	err := db.conn.WithContext(ctx).Model(&Subscription{}).Pluck("email", &emails).Error
+	err := db.conn.WithContext(ctx).Model(&Subscriber{}).Pluck("email", &emails).Error
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetSubscriptionEmails, mapGormError(err))
 	}
@@ -74,8 +74,8 @@ func (db *SubscriptionDB) GetEmails(ctx context.Context) ([]string, error) {
 	return emails, nil
 }
 
-func (db *SubscriptionDB) Delete(ctx context.Context, id string) error {
-	res := db.conn.WithContext(ctx).Where("id = ?", id).Delete(&Subscription{})
+func (db *SubscribersDB) Delete(ctx context.Context, id string) error {
+	res := db.conn.WithContext(ctx).Where("id = ?", id).Delete(&Subscriber{})
 	if res.Error != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteSubscription, mapGormError(res.Error))
 	}

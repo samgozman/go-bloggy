@@ -608,7 +608,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 
 	t.Run("201 - OK", func(t *testing.T) {
 		// create subscription for test
-		err := conn.Models.Subscriptions.Create(context.Background(), &models.Subscription{
+		err := conn.Models.Subscribers.Create(context.Background(), &models.Subscriber{
 			Email: uuid.New().String() + "@test.com",
 		})
 		assert.NoError(t, err)
