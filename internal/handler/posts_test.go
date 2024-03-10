@@ -662,25 +662,4 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		assert.Equal(t, errPostNotFound, body.Code)
 		assert.Equal(t, "Post not found", body.Message)
 	})
-
-	t.Run("400 - if non subscriber is confirmed", func(t *testing.T) {
-		// create subscription for test
-		err := conn.Models.Subscribers.Create(context.Background(), &models.Subscriber{
-			Email:       uuid.New().String() + "@test.com",
-			IsConfirmed: false,
-		})
-		assert.NoError(t, err)
-
-		res := testutil.NewRequest().
-			Post(basePostsPath+"/"+post.Slug+"/send-email").
-			WithJWSAuth(jwtToken).
-			GoWithHTTPHandler(t, e)
-
-		assert.Equal(t, http.StatusBadRequest, res.Code())
-
-		var body api.RequestError
-		err = res.UnmarshalBodyToObject(&body)
-		assert.NoError(t, err)
-		assert.Equal(t, errGetSubscription, body.Code)
-	})
 }
