@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/deepmap/oapi-codegen/v2 v2.1.0
 	github.com/getkin/kin-openapi v0.123.0
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/kataras/hcaptcha v0.0.2
 	github.com/labstack/echo/v4 v4.11.4
