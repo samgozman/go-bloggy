@@ -98,7 +98,7 @@ func TestSubscribersDB(t *testing.T) {
 		})
 	})
 
-	t.Run("GetConfirmedEmails", func(t *testing.T) {
+	t.Run("GetConfirmed", func(t *testing.T) {
 		t.Run("should return a list of emails", func(t *testing.T) {
 			// Create a few subscriptions
 			for i := 0; i < 3; i++ {
@@ -110,15 +110,16 @@ func TestSubscribersDB(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			emails, err := subscriptionDB.GetConfirmedEmails(context.Background())
+			subs, err := subscriptionDB.GetConfirmed(context.Background())
 			assert.NoError(t, err)
-			assert.NotEmpty(t, emails)
+			assert.NotEmpty(t, subs)
 			// check that all emails are unique
 			uniqueEmails := make(map[string]struct{})
-			for _, email := range emails {
-				uniqueEmails[email] = struct{}{}
+			for _, sub := range subs {
+				uniqueEmails[sub.Email] = struct{}{}
+				assert.NotEmpty(t, sub.ID)
 			}
-			assert.Len(t, uniqueEmails, len(emails))
+			assert.Len(t, uniqueEmails, len(subs))
 		})
 	})
 }

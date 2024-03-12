@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
+	"github.com/samgozman/go-bloggy/internal/mailer"
 	"net/http"
 	"regexp"
 	"strings"
@@ -275,8 +276,8 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 		})
 	}
 
-	// get subscribers emails
-	emails, err := h.db.Models.Subscribers.GetConfirmedEmails(ctx.Request().Context())
+	// Get subscribers
+	subs, err := h.db.Models.Subscribers.GetConfirmed(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errGetSubscription,
@@ -284,14 +285,35 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 		})
 	}
 
-	if len(emails) == 0 {
+	if len(subs) == 0 {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetSubscription,
 			Message: "No subscribers to send the post to.",
 		})
 	}
 
-	// TODO: Implement sending email
+	// Transform subscribers
+	mailerSubs := make([]*mailer.Subscriber, 0, len(subs))
+	for _, sub := range subs {
+		mailerSubs = append(mailerSubs, &mailer.Subscriber{
+			Email: sub.Email,
+			ID:    sub.ID.String(),
+		})
+	}
+
+	// Send email to subscribers
+	err = h.mailerService.SendPostEmail(&mailer.PostEmailSend{
+		To:          mailerSubs,
+		Title:       post.Title,
+		Description: post.Description,
+		Slug:        post.Slug,
+	})
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
+			Code:    errSendPostEmail,
+			Message: "Error sending post email",
+		})
+	}
 
 	// Update post
 	post.SentToSubscribersAt = time.Now()

@@ -66,7 +66,11 @@ func (m *MockMailerService) SendPostEmail(pe *mailer.PostEmailSend) error {
 }
 
 // registerHandlers creates a new echo instance and registers the handlers for testing.
-func registerHandlers(conn *db.Database, adminsIDs []string) (s *echo.Echo, githubService *MockGithubService, jwtService *MockJWTService) {
+func registerHandlers(conn *db.Database, adminsIDs []string) (
+	s *echo.Echo,
+	githubService *MockGithubService,
+	jwtService *MockJWTService,
+	mailerService *MockMailerService) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
@@ -80,5 +84,5 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (s *echo.Echo, gith
 
 	api.RegisterHandlers(e, h)
 
-	return e, g, j
+	return e, g, j, ms
 }

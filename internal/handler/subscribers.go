@@ -34,7 +34,7 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: Get ENVIRONMENT from config
+	// TODO: use test hcaptcha secret for testing and staging environments
 	if os.Getenv("ENVIRONMENT") == "production" {
 		if hr := h.hcaptchaService.VerifyToken(req.Captcha); !hr.Success {
 			return ctx.JSON(http.StatusBadRequest, api.RequestError{
@@ -60,7 +60,13 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 	}
 
 	// Note: for confirmation code can be used internal ID of the subscription just for simplicity
-	// TODO: Send confirmation email with a link to confirm subscription
+	err := h.mailerService.SendConfirmationEmail(req.Email, subscription.ID.String())
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
+			Code:    errSendConfirmationEmail,
+			Message: "Error sending confirmation email",
+		})
+	}
 
 	return ctx.NoContent(http.StatusCreated)
 }

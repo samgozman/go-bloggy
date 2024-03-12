@@ -25,10 +25,10 @@ type Options struct {
 }
 
 type PostEmailSend struct {
-	To          []Subscriber
+	To          []*Subscriber
 	Title       string
 	Description string
-	PostSlug    string
+	Slug        string
 }
 
 type Subscriber struct {
@@ -93,7 +93,7 @@ func (s *Service) SendPostEmail(pe *PostEmailSend) error {
 			Variables: map[string]interface{}{
 				"email_title":      pe.Title,
 				"email_paragraph":  pe.Description,
-				"post_link":        fmt.Sprintf("%s/%s", s.options.PostTemplateURLParam, pe.PostSlug),
+				"post_link":        fmt.Sprintf("%s/%s", s.options.PostTemplateURLParam, pe.Slug),
 				"unsubscribe_link": fmt.Sprintf("%s?token=%s", s.options.UnsubscribeURLParam, sub.ID),
 			},
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"net/http"
 	"testing"
 )
@@ -19,12 +20,14 @@ func Test_PostSubscribers(t *testing.T) {
 	}
 
 	t.Run("Created", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, mockMailerService := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "some@email.com",
 			Captcha: "some-captcha",
 		})
+
+		mockMailerService.On("SendConfirmationEmail", "some@email.com", mock.Anything).Return(nil)
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -41,10 +44,11 @@ func Test_PostSubscribers(t *testing.T) {
 			Pluck("email", &emails).Error
 		assert.NoError(t, err)
 		assert.Contains(t, emails, "some@email.com")
+		mockMailerService.AssertExpectations(t)
 	})
 
 	t.Run("BadRequest", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, _ := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "invalid-email",
@@ -68,7 +72,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	}
 
 	t.Run("NoContent", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, _ := registerHandlers(conn, nil)
 
 		sub := models.Subscriber{
 			Email: "some@email.space",
@@ -97,7 +101,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest ", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, _ := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: "f87c5cc0-ec7b-41eb-8d23-0abe0938efd2",
@@ -126,7 +130,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	}
 
 	t.Run("OK - NoContent", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, _ := registerHandlers(conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some@email.space",
@@ -156,7 +160,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest - not found", func(t *testing.T) {
-		e, _, _ := registerHandlers(conn, nil)
+		e, _, _, _ := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
 			Token: "ce247e1d-a371-42fc-b36b-26b566c0096c",

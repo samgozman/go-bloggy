@@ -74,17 +74,18 @@ func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, e
 	return &s, nil
 }
 
-func (db *SubscribersDB) GetConfirmedEmails(ctx context.Context) ([]string, error) {
-	var emails []string
+func (db *SubscribersDB) GetConfirmed(ctx context.Context) ([]*Subscriber, error) {
+	var s []*Subscriber
 	err := db.conn.WithContext(ctx).
 		Model(&Subscriber{}).
+		Select("id, email").
 		Where("is_confirmed = ?", true).
-		Pluck("email", &emails).Error
+		Find(&s).Error
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetSubscriptionEmails, mapGormError(err))
 	}
 
-	return emails, nil
+	return s, nil
 }
 
 func (db *SubscribersDB) Delete(ctx context.Context, id string) error {

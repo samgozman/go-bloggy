@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GetHealth(t *testing.T) {
-	e, _, _ := registerHandlers(nil, nil)
+	e, _, _, _ := registerHandlers(nil, nil)
 
 	res := testutil.NewRequest().Get("/health").GoWithHTTPHandler(t, e)
 
