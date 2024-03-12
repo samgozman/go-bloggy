@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,19 @@ type Config struct {
 	AdminsExternalIDs  []string // AdminsExternalIDs list of admins allowed to auth, separated by comma.
 	Environment        string   // Environment is the environment the server is running (e.g. "production", "development").
 	HCaptchaSecret     string   // HCaptchaSecret is the secret key for HCaptcha verification.
+	MailerJet          MailerConfig
+}
+
+type MailerConfig struct {
+	PublicKey                    string // PublicKey is the public key for Mailjet API.
+	PrivateKey                   string // PrivateKey is the private key for Mailjet API.
+	FromEmail                    string // FromEmail is the email address to send emails from.
+	FromName                     string // FromName is the name to send emails from.
+	ConfirmationTemplateID       int    // ConfirmationTemplateID is the ID of the Mailjet template for confirmation emails.
+	ConfirmationTemplateURLParam string // ConfirmationTemplateURLParam e.g. "https://example.com/confirm?token="
+	PostTemplateID               int    // PostTemplateID is the ID of the Mailjet template for post-emails.
+	PostTemplateURLParam         string // PostTemplateURLParam e.g. "https://example.com/post/" to append the posts slug.
+	UnsubscribeURLParam          string // UnsubscribeURLParam e.g. "https://example.com/unsubscribe?id="
 }
 
 // NewConfigFromEnv creates a new Config.
@@ -21,9 +35,12 @@ func NewConfigFromEnv() *Config {
 	admins := getEnvOrPanic("ADMINS_EXTERNAL_IDS")
 	var adminsList []string
 	if admins != "" {
-		// admins is a comma separated list of external IDs
+		// admins is a comma-separated list of external IDs
 		adminsList = strings.Split(admins, ",")
 	}
+
+	confirmationTemplateID, _ := strconv.Atoi(getEnvOrPanic("MAILJET_CONFIRMATION_TEMPLATE_ID"))
+	postTemplateID, _ := strconv.Atoi(getEnvOrPanic("MAILJET_POST_TEMPLATE_ID"))
 
 	return &Config{
 		GithubClientID:     getEnvOrPanic("GITHUB_CLIENT_ID"),
@@ -34,6 +51,17 @@ func NewConfigFromEnv() *Config {
 		AdminsExternalIDs:  adminsList,
 		Environment:        getEnvOrPanic("ENVIRONMENT"),
 		HCaptchaSecret:     getEnvOrPanic("HCAPTCHA_SECRET"),
+		MailerJet: MailerConfig{
+			PublicKey:                    getEnvOrPanic("MAILJET_PUBLIC_KEY"),
+			PrivateKey:                   getEnvOrPanic("MAILJET_PRIVATE_KEY"),
+			FromEmail:                    getEnvOrPanic("MAILJET_MAIL_FROM"),
+			FromName:                     getEnvOrPanic("MAILJET_MAIL_FROM_NAME"),
+			ConfirmationTemplateID:       confirmationTemplateID,
+			ConfirmationTemplateURLParam: getEnvOrPanic("MAILJET_CONFIRMATION_TEMPLATE_URL_PARAM"),
+			PostTemplateID:               postTemplateID,
+			PostTemplateURLParam:         getEnvOrPanic("MAILJET_POST_TEMPLATE_URL_PARAM"),
+			UnsubscribeURLParam:          getEnvOrPanic("MAILJET_UNSUBSCRIBE_URL_PARAM"),
+		},
 	}
 }
 

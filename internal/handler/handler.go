@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/hcaptcha"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
+	"github.com/samgozman/go-bloggy/internal/mailer"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type Handler struct {
 	jwtService        jwtService
 	hcaptchaService   hcaptchaService
 	db                *db.Database
+	mailerService     mailerService
 	adminsExternalIDs []string
 }
 
@@ -21,15 +23,17 @@ type Handler struct {
 func NewHandler(
 	g githubService,
 	j jwtService,
-	dbConn *db.Database,
+	db *db.Database,
 	h hcaptchaService,
+	ms mailerService,
 	adminsExternalIDs []string,
 ) *Handler {
 	return &Handler{
 		githubService:     g,
 		jwtService:        j,
-		db:                dbConn,
+		db:                db,
 		hcaptchaService:   h,
+		mailerService:     ms,
 		adminsExternalIDs: adminsExternalIDs,
 	}
 }
@@ -47,4 +51,9 @@ type jwtService interface {
 
 type hcaptchaService interface {
 	VerifyToken(tkn string) (response hcaptcha.Response)
+}
+
+type mailerService interface {
+	SendConfirmationEmail(to, confirmationID string) error
+	SendPostEmail(pe *mailer.PostEmailSend) error
 }

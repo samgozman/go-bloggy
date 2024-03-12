@@ -9,6 +9,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/handler"
 	"github.com/samgozman/go-bloggy/internal/jwt"
+	"github.com/samgozman/go-bloggy/internal/mailer"
 	"github.com/samgozman/go-bloggy/internal/middlewares"
 )
 
@@ -24,12 +25,22 @@ func main() {
 	ghService := github.NewService(config.GithubClientID, config.GithubClientSecret)
 	jwtService := jwt.NewService(config.JWTSecretKey)
 	hcaptchaService := hcaptcha.New(config.HCaptchaSecret)
+	mailerService := mailer.NewService(config.MailerJet.PublicKey, config.MailerJet.PrivateKey, &mailer.Options{
+		FromEmail:                    config.MailerJet.FromEmail,
+		FromName:                     config.MailerJet.FromName,
+		ConfirmationTemplateID:       config.MailerJet.ConfirmationTemplateID,
+		ConfirmationTemplateURLParam: config.MailerJet.ConfirmationTemplateURLParam,
+		PostTemplateID:               config.MailerJet.PostTemplateID,
+		PostTemplateURLParam:         config.MailerJet.PostTemplateURLParam,
+		UnsubscribeURLParam:          config.MailerJet.UnsubscribeURLParam,
+	})
 
 	apiHandler := handler.NewHandler(
 		ghService,
 		jwtService,
 		dnConn,
 		hcaptchaService,
+		mailerService,
 		config.AdminsExternalIDs,
 	)
 	server := echo.New()
