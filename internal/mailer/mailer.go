@@ -25,11 +25,15 @@ type Options struct {
 }
 
 type PostEmailSend struct {
-	To           []string
-	SubscriberID string
-	Title        string
-	Description  string
-	PostSlug     string
+	To          []Subscriber
+	Title       string
+	Description string
+	PostSlug    string
+}
+
+type Subscriber struct {
+	ID    string
+	Email string
 }
 
 func NewService(publicKey, privateKey string, options *Options) *Service {
@@ -69,30 +73,30 @@ func (s *Service) SendConfirmationEmail(to, confirmationID string) error {
 }
 
 func (s *Service) SendPostEmail(pe *PostEmailSend) error {
-	r := make([]mailjet.RecipientV31, len(pe.To))
-	for i, email := range pe.To {
-		r[i] = mailjet.RecipientV31{
-			Email: email,
-		}
+	messageFrom := mailjet.RecipientV31{
+		Email: s.options.FromEmail,
+		Name:  s.options.FromName,
 	}
-	recipients := mailjet.RecipientsV31(r)
+	subject := fmt.Sprintf("New post: %s", pe.Title)
 
-	messagesInfo := []mailjet.InfoMessagesV31{
-		{
-			From: &mailjet.RecipientV31{
-				Email: s.options.FromEmail,
-				Name:  s.options.FromName,
+	messagesInfo := make([]mailjet.InfoMessagesV31, len(pe.To))
+	for i, sub := range pe.To {
+		messagesInfo[i] = mailjet.InfoMessagesV31{
+			From: &messageFrom,
+			To: &mailjet.RecipientsV31{
+				mailjet.RecipientV31{
+					Email: sub.Email,
+				},
 			},
-			To:         &recipients,
-			Subject:    fmt.Sprintf("New post: %s", pe.Title),
+			Subject:    subject,
 			TemplateID: s.options.PostTemplateID,
 			Variables: map[string]interface{}{
 				"email_title":      pe.Title,
 				"email_paragraph":  pe.Description,
 				"post_link":        fmt.Sprintf("%s/%s", s.options.PostTemplateURLParam, pe.PostSlug),
-				"unsubscribe_link": fmt.Sprintf("%s?token=%s", s.options.UnsubscribeURLParam, pe.SubscriberID),
+				"unsubscribe_link": fmt.Sprintf("%s?token=%s", s.options.UnsubscribeURLParam, sub.ID),
 			},
-		},
+		}
 	}
 
 	_, err := s.client.SendMailV31(&mailjet.MessagesV31{Info: messagesInfo})

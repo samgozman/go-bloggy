@@ -53,11 +53,15 @@ func TestService_SendPostEmail(t *testing.T) {
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, nil)
 
 		err := s.SendPostEmail(&PostEmailSend{
-			To:           []string{"test@example.com"},
-			SubscriberID: "123",
-			Title:        "Test Title",
-			Description:  "Test Description",
-			PostSlug:     "test-slug",
+			To: []Subscriber{
+				{
+					ID:    "123",
+					Email: "some@example.com",
+				},
+			},
+			Title:       "Test Title",
+			Description: "Test Description",
+			PostSlug:    "test-slug",
 		})
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -71,11 +75,15 @@ func TestService_SendPostEmail(t *testing.T) {
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, errors.New("error"))
 
 		err := s.SendPostEmail(&PostEmailSend{
-			To:           []string{"test@example.com"},
-			SubscriberID: "123",
-			Title:        "Test Title",
-			Description:  "Test Description",
-			PostSlug:     "test-slug",
+			To: []Subscriber{
+				{
+					ID:    "123",
+					Email: "some@example.com",
+				},
+			},
+			Title:       "Test Title",
+			Description: "Test Description",
+			PostSlug:    "test-slug",
 		})
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, ErrSendPostMail)
