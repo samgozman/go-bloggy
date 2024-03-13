@@ -9,6 +9,9 @@ info:
   contact:
     name: Sam Gozman
     url: https://github.com/samgozman/go-bloggy
+servers:
+  - url: http://localhost:3000
+    description: Local server
 paths:
   /health:
     get:
@@ -498,7 +501,7 @@ components:
           example: "example@example.com"
         captcha:
           type: string
-          example: "1234567890abcdef"
+          example: "10000000-aaaa-bbbb-cccc-000000000001"
           description: The captcha token
       required: [ "email", "captcha" ]
     UnsubscribeRequest:

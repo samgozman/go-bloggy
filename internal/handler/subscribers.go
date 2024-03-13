@@ -30,7 +30,7 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 	if !isValidEmail(req.Email) {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errValidationEmail,
-			Message: "Invalid email",
+			Message: fmt.Sprintf("Invalid email: %v", req.Email),
 		})
 	}
 
@@ -45,8 +45,7 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 	}
 
 	subscription := models.Subscriber{
-		Email:       req.Email,
-		IsConfirmed: false,
+		Email: req.Email,
 	}
 
 	if err := h.db.Models.Subscribers.Create(ctx.Request().Context(), &subscription); err != nil {
