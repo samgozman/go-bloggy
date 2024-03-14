@@ -55,11 +55,12 @@ func (s *Service) SendConfirmationEmail(to, confirmationID string) error {
 					Email: to,
 				},
 			},
-			Subject:    "Please confirm your subscription",
-			TemplateID: s.options.ConfirmationTemplateID,
+			Subject:          "Please confirm your subscription",
+			TemplateID:       s.options.ConfirmationTemplateID,
+			TemplateLanguage: true,
 			Variables: map[string]interface{}{
-				"confirm_link":     fmt.Sprintf("%s?token=%s", s.options.ConfirmationTemplateURLParam, confirmationID),
-				"unsubscribe_link": fmt.Sprintf("%s?token=%s", s.options.UnsubscribeURLParam, confirmationID),
+				"confirm_link":     s.options.ConfirmationTemplateURLParam + confirmationID,
+				"unsubscribe_link": s.options.UnsubscribeURLParam + confirmationID,
 			},
 		},
 	}
@@ -88,13 +89,14 @@ func (s *Service) SendPostEmail(pe *PostEmailSend) error {
 					Email: sub.Email,
 				},
 			},
-			Subject:    subject,
-			TemplateID: s.options.PostTemplateID,
+			Subject:          subject,
+			TemplateID:       s.options.PostTemplateID,
+			TemplateLanguage: true,
 			Variables: map[string]interface{}{
 				"email_title":      pe.Title,
 				"email_paragraph":  pe.Description,
 				"post_link":        fmt.Sprintf("%s/%s", s.options.PostTemplateURLParam, pe.Slug),
-				"unsubscribe_link": fmt.Sprintf("%s?token=%s", s.options.UnsubscribeURLParam, sub.ID),
+				"unsubscribe_link": s.options.UnsubscribeURLParam + sub.ID,
 			},
 		}
 	}
