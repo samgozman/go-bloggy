@@ -120,6 +120,16 @@ func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
 		})
 	}
 
+	// TODO: use test hcaptcha secret for testing and staging environments
+	if os.Getenv("ENVIRONMENT") == "production" {
+		if hr := h.hcaptchaService.VerifyToken(req.Captcha); !hr.Success {
+			return ctx.JSON(http.StatusBadRequest, api.RequestError{
+				Code:    errValidationCaptcha,
+				Message: "Invalid captcha",
+			})
+		}
+	}
+
 	// Note: Token is used as subscription ID for simplicity
 	subscriptionID, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.Token)
 	if err != nil {

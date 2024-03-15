@@ -522,4 +522,8 @@ components:
           type: string
           example: "1234567890abcdef"
           description: The confirmation token
-      required: [ "token" ]
+        captcha:
+          type: string
+          example: "10000000-aaaa-bbbb-cccc-000000000001"
+          description: The captcha token
+      required: [ "token", "captcha" ]
