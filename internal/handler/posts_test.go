@@ -604,10 +604,10 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 	}
 	assert.NoError(t, conn.Models.Posts.Create(context.Background(), post))
 
-	e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
-	mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
-
 	t.Run("201 - OK", func(t *testing.T) {
+		e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
 		// create subscription for test
 		err := conn.Models.Subscribers.Create(context.Background(), &models.Subscriber{
 			Email:       uuid.New().String() + "@test.com",
@@ -624,9 +624,13 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, res.Code())
 		mockMailerService.AssertExpectations(t)
+		mockJwtService.AssertExpectations(t)
 	})
 
 	t.Run("409 - errPostAlreadySent", func(t *testing.T) {
+		e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
 		// create a post for test that was already sent
 		p := &models.Post{
 			UserID:              user.ID,
@@ -643,6 +647,8 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 			WithJWSAuth(jwtToken).
 			GoWithHTTPHandler(t, e)
 
+		mockMailerService.AssertNotCalled(t, "SendPostEmail", mock.Anything)
+
 		assert.Equal(t, http.StatusConflict, res.Code())
 
 		var body api.RequestError
@@ -650,9 +656,14 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errPostAlreadySent, body.Code)
 		assert.Equal(t, "Post was already sent to subscribers. This can be done only once.", body.Message)
+		mockJwtService.AssertExpectations(t)
+		mockMailerService.AssertExpectations(t)
 	})
 
 	t.Run("404 - errPostNotFound", func(t *testing.T) {
+		e, _, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
+
 		res := testutil.NewRequest().
 			Post(basePostsPath+"/not-found-slug/send-email").
 			WithJWSAuth(jwtToken).
@@ -665,5 +676,6 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errPostNotFound, body.Code)
 		assert.Equal(t, "Post not found", body.Message)
+		mockJwtService.AssertExpectations(t)
 	})
 }
