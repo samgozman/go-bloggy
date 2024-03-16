@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/kataras/hcaptcha"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db"
@@ -20,14 +21,22 @@ func Test_PostSubscribers(t *testing.T) {
 	}
 
 	t.Run("Created", func(t *testing.T) {
-		e, _, _, mockMailerService := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "some@email.com",
 			Captcha: "some-captcha",
 		})
 
-		mockMailerService.On("SendConfirmationEmail", "some@email.com", mock.Anything).Return(nil)
+		mockMailerService.
+			On("SendConfirmationEmail", "some@email.com", mock.Anything).
+			Return(nil).
+			Once()
+
+		mockHcaptchaService.
+			On("VerifyToken", "some-captcha").Return(hcaptcha.Response{
+			Success: true}, nil).
+			Once()
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -45,15 +54,22 @@ func Test_PostSubscribers(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, emails, "some@email.com")
 		mockMailerService.AssertExpectations(t)
+		mockHcaptchaService.AssertExpectations(t)
 	})
 
 	t.Run("BadRequest", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "invalid-email",
 			Captcha: "some-captcha",
 		})
+
+		mockMailerService.AssertNotCalled(t, "SendConfirmationEmail", mock.Anything, mock.Anything)
+		mockHcaptchaService.
+			On("VerifyToken", "some-captcha").Return(hcaptcha.Response{
+			Success: true}, nil).
+			Once()
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -62,6 +78,9 @@ func Test_PostSubscribers(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		mockMailerService.AssertExpectations(t)
+		mockHcaptchaService.AssertExpectations(t)
 	})
 }
 
@@ -72,7 +91,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	}
 
 	t.Run("NoContent", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(conn, nil)
 
 		sub := models.Subscriber{
 			Email: "some@email.space",
@@ -101,7 +120,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest ", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: "f87c5cc0-ec7b-41eb-8d23-0abe0938efd2",
@@ -130,7 +149,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	}
 
 	t.Run("OK - NoContent", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some@email.space",
@@ -142,8 +161,14 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
-			Token: sub.ID.String(),
+			Token:   sub.ID.String(),
+			Captcha: "some-captcha",
 		})
+
+		mockHcaptchaService.
+			On("VerifyToken", "some-captcha").Return(hcaptcha.Response{
+			Success: true}, nil).
+			Once()
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -157,14 +182,22 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		retrievedSubscription, err := conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
 		assert.NoError(t, err)
 		assert.True(t, retrievedSubscription.IsConfirmed)
+
+		mockHcaptchaService.AssertExpectations(t)
 	})
 
 	t.Run("StatusBadRequest - not found", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
-			Token: "ce247e1d-a371-42fc-b36b-26b566c0096c",
+			Token:   "ce247e1d-a371-42fc-b36b-26b566c0096c",
+			Captcha: "some-captcha",
 		})
+
+		mockHcaptchaService.
+			On("VerifyToken", "some-captcha").Return(hcaptcha.Response{
+			Success: true}, nil).
+			Once()
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -173,13 +206,15 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
+
+		mockHcaptchaService.AssertExpectations(t)
 	})
 
 	t.Run("OK - if already confirmed", func(t *testing.T) {
-		e, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
 
 		sub := models.Subscriber{
-			Email:       "some@email.space",
+			Email:       "some2@email.space",
 			IsConfirmed: true,
 		}
 
@@ -188,8 +223,14 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
-			Token: sub.ID.String(),
+			Token:   sub.ID.String(),
+			Captcha: "some-captcha",
 		})
+
+		mockHcaptchaService.
+			On("VerifyToken", "some-captcha").Return(hcaptcha.Response{
+			Success: true}, nil).
+			Once()
 
 		res := testutil.NewRequest().
 			WithHeader("Content-Type", "application/json").
@@ -198,5 +239,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 			GoWithHTTPHandler(t, e)
 
 		assert.Equal(t, http.StatusOK, res.Code())
+
+		mockHcaptchaService.AssertExpectations(t)
 	})
 }

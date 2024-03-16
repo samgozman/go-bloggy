@@ -70,7 +70,9 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (
 	s *echo.Echo,
 	githubService *MockGithubService,
 	jwtService *MockJWTService,
-	mailerService *MockMailerService) {
+	mailerService *MockMailerService,
+	captchaService *MockHCaptchaService,
+) {
 	// Create mocks
 	g := new(MockGithubService)
 	j := new(MockJWTService)
@@ -84,5 +86,5 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (
 
 	api.RegisterHandlers(e, h)
 
-	return e, g, j, ms
+	return e, g, j, ms, hc
 }
