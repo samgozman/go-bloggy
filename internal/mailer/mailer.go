@@ -95,7 +95,7 @@ func (s *Service) SendPostEmail(pe *PostEmailSend) error {
 			Variables: map[string]interface{}{
 				"email_title":      pe.Title,
 				"email_paragraph":  pe.Description,
-				"post_link":        fmt.Sprintf("%s/%s", s.options.PostTemplateURLParam, pe.Slug),
+				"post_link":        s.options.PostTemplateURLParam + pe.Slug,
 				"unsubscribe_link": s.options.UnsubscribeURLParam + sub.ID,
 			},
 		}
