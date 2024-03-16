@@ -13,7 +13,6 @@ type Config struct {
 	Port               string   // Port for server to listen on.
 	DSN                string   // DSN - Database Source Name. For sqlite, it's the file path.
 	AdminsExternalIDs  []string // AdminsExternalIDs list of admins allowed to auth, separated by comma.
-	Environment        string   // Environment is the environment the server is running (e.g. "production", "development").
 	HCaptchaSecret     string   // HCaptchaSecret is the secret key for HCaptcha verification.
 	MailerJet          MailerConfig
 }
@@ -49,7 +48,6 @@ func NewConfigFromEnv() *Config {
 		Port:               getEnvOrPanic("PORT"),
 		DSN:                getEnvOrPanic("DSN"),
 		AdminsExternalIDs:  adminsList,
-		Environment:        getEnvOrPanic("ENVIRONMENT"),
 		HCaptchaSecret:     getEnvOrPanic("HCAPTCHA_SECRET"),
 		MailerJet: MailerConfig{
 			PublicKey:                    getEnvOrPanic("MAILJET_PUBLIC_KEY"),
