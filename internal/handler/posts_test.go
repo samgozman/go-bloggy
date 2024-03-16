@@ -316,20 +316,22 @@ func TestHandler_GetPosts(t *testing.T) {
 	// create posts for test
 	posts := []*models.Post{
 		{
-			UserID:      user.ID,
-			Title:       "Test Title 1",
-			Slug:        "test-slug-1",
-			Content:     "Test Content 1",
-			Description: "Test Description 1",
-			Keywords:    "test1,test2",
+			UserID:              user.ID,
+			Title:               "Test Title 1",
+			Slug:                "test-slug-1",
+			Content:             "Test Content 1",
+			Description:         "Test Description 1",
+			Keywords:            "test1,test2",
+			SentToSubscribersAt: time.Now(),
 		},
 		{
-			UserID:      user.ID,
-			Title:       "Test Title 2",
-			Slug:        "test-slug-2",
-			Content:     "Test Content 1 to read in 1 second",
-			Description: "Test Description 2",
-			Keywords:    "test1,test2",
+			UserID:              user.ID,
+			Title:               "Test Title 2",
+			Slug:                "test-slug-2",
+			Content:             "Test Content 1 to read in 1 second",
+			Description:         "Test Description 2",
+			Keywords:            "test1,test2",
+			SentToSubscribersAt: time.Now(),
 		},
 	}
 	for _, post := range posts {
@@ -370,6 +372,8 @@ func TestHandler_GetPosts(t *testing.T) {
 		assert.Equal(t, posts[1].Description, postsRes.Posts[0].Description)
 		assert.Equal(t, &[]string{"test1", "test2"}, postsRes.Posts[0].Keywords)
 		assert.Equal(t, 1, postsRes.Posts[0].ReadingTime)
+		assert.NotEmpty(t, postsRes.Posts[0].CreatedAt)
+		assert.NotEmpty(t, postsRes.Posts[0].SentToSubscribersAt)
 	})
 
 	t.Run("OK - zero posts per page", func(t *testing.T) {

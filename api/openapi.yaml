@@ -480,7 +480,11 @@ components:
           type: string
           format: date-time
           example: "2021-08-01T00:00:00Z"
-      required: [ "title", "slug", "description", "reading_time", "created_at" ]
+        sent_to_subscribers_at:
+          type: string
+          format: date-time
+          example: "2021-08-01T00:00:00Z"
+      required: [ "title", "slug", "description", "reading_time", "created_at", "sent_to_subscribers_at" ]
     PostsListResponse:
       type: object
       description: A list of posts

@@ -114,12 +114,13 @@ func TestPostDB(t *testing.T) {
 	t.Run("FindAll", func(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			post := &Post{
-				UserID:      user.ID,
-				Slug:        uuid.New().String(),
-				Title:       "Test Title",
-				Description: "Test Description",
-				Content:     "Test Content to read in 1 second",
-				Keywords:    "some",
+				UserID:              user.ID,
+				Slug:                uuid.New().String(),
+				Title:               "Test Title",
+				Description:         "Test Description",
+				Content:             "Test Content to read in 1 second",
+				Keywords:            "some",
+				SentToSubscribersAt: time.Now(),
 			}
 
 			err := postDB.Create(context.Background(), post)
@@ -140,6 +141,7 @@ func TestPostDB(t *testing.T) {
 				assert.NotEmpty(t, posts[i].Slug)
 				assert.NotEmpty(t, posts[i].CreatedAt)
 				assert.Equal(t, 1, posts[i].ReadingTime)
+				assert.NotZero(t, posts[i].SentToSubscribersAt)
 
 				// check that unnecessary fields are empty
 				assert.Empty(t, posts[i].Content)
