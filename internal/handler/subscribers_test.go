@@ -174,4 +174,29 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Code())
 	})
+
+	t.Run("OK - if already confirmed", func(t *testing.T) {
+		e, _, _, _ := registerHandlers(conn, nil)
+
+		sub := models.Subscriber{
+			Email:       "some@email.space",
+			IsConfirmed: true,
+		}
+
+		// Create a subscription
+		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		assert.NoError(t, err)
+
+		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
+			Token: sub.ID.String(),
+		})
+
+		res := testutil.NewRequest().
+			WithHeader("Content-Type", "application/json").
+			Post("/subscribers/confirm").
+			WithBody(rb).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+	})
 }

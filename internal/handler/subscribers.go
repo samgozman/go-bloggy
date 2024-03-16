@@ -131,7 +131,7 @@ func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
 	}
 
 	// Note: Token is used as subscription ID for simplicity
-	subscriptionID, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.Token)
+	subscription, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.Token)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetSubscription,
@@ -139,8 +139,12 @@ func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
 		})
 	}
 
-	subscriptionID.IsConfirmed = true
-	if err := h.db.Models.Subscribers.Update(ctx.Request().Context(), subscriptionID); err != nil {
+	if subscription.IsConfirmed {
+		return ctx.NoContent(http.StatusOK)
+	}
+
+	subscription.IsConfirmed = true
+	if err := h.db.Models.Subscribers.Update(ctx.Request().Context(), subscription); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errUpdateSubscription,
 			Message: "Error updating subscription",
