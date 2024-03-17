@@ -69,6 +69,7 @@ func (db *UserDB) Upsert(ctx context.Context, user *User) error {
 	err := db.conn.
 		WithContext(ctx).
 		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "external_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"login"}),
 		}).
 		Create(user).Error

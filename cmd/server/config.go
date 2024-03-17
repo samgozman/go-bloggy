@@ -11,7 +11,7 @@ type Config struct {
 	GithubClientSecret string   // GithubClientSecret is the secret key for GitHub OAuth.
 	JWTSecretKey       string   // JWTSecretKey is the secret key for JWT token creation.
 	Port               string   // Port for server to listen on.
-	DSN                string   // DSN - Database Source Name. For sqlite, it's the file path.
+	DSN                string   // DSN - Database Source Name for Postgres.
 	AdminsExternalIDs  []string // AdminsExternalIDs list of admins allowed to auth, separated by comma.
 	HCaptchaSecret     string   // HCaptchaSecret is the secret key for HCaptcha verification.
 	MailerJet          MailerConfig

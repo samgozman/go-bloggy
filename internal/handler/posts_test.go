@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
-	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,7 +21,7 @@ const jwtToken = "jwtToken"
 const basePostsPath = "/posts"
 
 func Test_PostPosts(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -217,7 +216,7 @@ func Test_PostPosts(t *testing.T) {
 }
 
 func TestHandler_GetPostsSlug(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -297,7 +296,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 }
 
 func TestHandler_GetPosts(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -421,7 +420,7 @@ func TestHandler_GetPosts(t *testing.T) {
 }
 
 func TestHandler_PutPostsSlug(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -584,7 +583,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 }
 
 func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}

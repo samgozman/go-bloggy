@@ -6,7 +6,6 @@ import (
 	"github.com/kataras/hcaptcha"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
-	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,7 +14,7 @@ import (
 )
 
 func Test_PostSubscribers(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -85,7 +84,7 @@ func Test_PostSubscribers(t *testing.T) {
 }
 
 func Test_DeleteSubscribers(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -143,7 +142,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 }
 
 func Test_PostSubscribersConfirm(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}

@@ -2,9 +2,12 @@ package db
 
 import (
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log/slog"
+	"time"
 )
 
 // Models is a collection of all models in the database.
@@ -20,21 +23,36 @@ type Database struct {
 	Models *Models
 }
 
-// InitDatabase creates a new database connection & migrates the schema.
-func InitDatabase(dsn string) (*Database, error) {
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+// connectToPG connects to the Postgres database and retries until it is ready.
+func connectToPG(dsn string) (*gorm.DB, error) {
+	bf := backoff.NewExponentialBackOff()
+	bf.InitialInterval = 10 * time.Second
+	bf.MaxInterval = 25 * time.Second
+	bf.MaxElapsedTime = 90 * time.Second
+
+	db, err := backoff.RetryWithData[*gorm.DB](func() (*gorm.DB, error) {
+		conn, err := gorm.Open(postgres.New(postgres.Config{
+			DSN: dsn,
+		}))
+		if err != nil {
+			slog.Info("[connectToPG] Postgres not yet ready...")
+			return nil, fmt.Errorf("failed to connect to Postgres: %w", err)
+		}
+		slog.Info("[connectToPG] Connected to Postgres!")
+		return conn, nil
+	}, bf)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToConnectDatabase, err)
+		return nil, fmt.Errorf("failed to connect to Postgres: %w", err)
 	}
 
-	// Enable foreign key constraint enforcement in SQLite
-	sqliteDB, err := db.DB()
+	return db, nil
+}
+
+// InitDatabase creates a new database connection & migrates the schema.
+func InitDatabase(dsn string) (*Database, error) {
+	db, err := connectToPG(dsn)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToGetDatabaseConnection, err)
-	}
-	_, err = sqliteDB.Exec("PRAGMA foreign_keys = ON;")
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToEnableForeignKeyConstraints, err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToConnectDatabase, err)
 	}
 
 	// Migrate the schema

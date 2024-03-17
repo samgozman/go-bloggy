@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
-	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ import (
 )
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
-	conn, errDB := db.InitDatabase("file::memory:")
+	conn, errDB := initDatabaseTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
