@@ -178,7 +178,13 @@ func (h *Handler) GetPosts(ctx echo.Context, params api.GetPostsParams) error {
 
 	postsItems := make([]api.PostsListItem, 0, len(posts))
 	for _, post := range posts {
-		keywords := strings.Split(post.Keywords, ",")
+		var keywords []string
+		if post.Keywords != "" {
+			keywords = strings.Split(post.Keywords, ",")
+		} else {
+			keywords = []string{}
+		}
+
 		postsItems = append(postsItems, api.PostsListItem{
 			Title:               post.Title,
 			Slug:                post.Slug,
