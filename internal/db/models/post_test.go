@@ -112,7 +112,7 @@ func TestPostDB(t *testing.T) {
 	})
 
 	t.Run("FindAll", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			post := &Post{
 				UserID:              user.ID,
 				Slug:                uuid.New().String(),
@@ -132,7 +132,7 @@ func TestPostDB(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, 5, len(posts))
 
-			for i := 0; i < len(posts)-1; i++ {
+			for i := 0; i < len(posts)-1; i++ { //nolint:intrange
 				// check the order of the posts
 				assert.True(t, posts[i].CreatedAt.After(posts[i+1].CreatedAt))
 				assert.Equal(t, "Test Title", posts[i].Title)
@@ -390,7 +390,7 @@ func TestPostDB_Count(t *testing.T) {
 	postDB := NewPostDB(db)
 
 	t.Run("return count of all posts", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			post := &Post{
 				UserID:      user.ID,
 				Slug:        uuid.New().String(),

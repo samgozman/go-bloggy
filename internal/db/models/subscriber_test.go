@@ -101,7 +101,7 @@ func TestSubscribersDB(t *testing.T) {
 	t.Run("GetConfirmed", func(t *testing.T) {
 		t.Run("should return a list of emails", func(t *testing.T) {
 			// Create a few subscriptions
-			for i := 0; i < 3; i++ {
+			for range 3 {
 				subscription := &Subscriber{
 					Email:       genEmail(),
 					IsConfirmed: true,
