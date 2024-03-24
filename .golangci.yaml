@@ -31,16 +31,15 @@ linters:
     - nestif
     - nilerr
     - wrapcheck
+    - copyloopvar
+    - intrange
 
 linters-settings:
   gocyclo:
     min-complexity: 15
-  govet:
-    check-shadowing: true
   wrapcheck:
     ignoreSigRegexps:
       - 'func \(github\.com/labstack/echo/..\.Context\)\.*' # ignore echo.Context methods
 output:
-  format: colored-line-number
   print-issued-lines: false
   print-linter-name: true
