@@ -115,7 +115,12 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 		})
 	}
 
-	keywords := strings.Split(post.Keywords, ",")
+	var keywords []string
+	if post.Keywords != "" {
+		keywords = strings.Split(post.Keywords, ",")
+	} else {
+		keywords = []string{}
+	}
 
 	return ctx.JSON(http.StatusOK, api.PostResponse{
 		Id:          post.ID,
@@ -218,12 +223,14 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 	post.Description = req.Description
 	post.Content = req.Content
 
-	if req.Keywords != nil {
+	if req.Keywords != nil && len(*req.Keywords) > 0 {
 		keywords := (*req.Keywords)[0]
 		for i := 1; i < len(*req.Keywords); i++ {
 			keywords += "," + (*req.Keywords)[i]
 		}
 		post.Keywords = keywords
+	} else {
+		post.Keywords = ""
 	}
 
 	if err := h.db.Models.Posts.Update(ctx.Request().Context(), post); err != nil {

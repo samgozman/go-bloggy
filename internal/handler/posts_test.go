@@ -232,19 +232,19 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 
 	e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 
-	// create post for test
-	post := &models.Post{
-		UserID:      user.ID,
-		Title:       "Test Title",
-		Slug:        "test-slug",
-		Content:     "Test Content to read in 1 second",
-		Description: "Test Description",
-		Keywords:    "test1,test2",
-	}
-	err = conn.Models.Posts.Create(context.Background(), post)
-	assert.NoError(t, err)
-
 	t.Run("200 - OK", func(t *testing.T) {
+		// create post for test
+		post := &models.Post{
+			UserID:      user.ID,
+			Title:       "Test Title",
+			Slug:        "test-slug",
+			Content:     "Test Content to read in 1 second",
+			Description: "Test Description",
+			Keywords:    "test1,test2",
+		}
+		err = conn.Models.Posts.Create(context.Background(), post)
+		assert.NoError(t, err)
+
 		res := testutil.NewRequest().
 			Get(basePostsPath+"/"+post.Slug).
 			GoWithHTTPHandler(t, e)
@@ -260,6 +260,40 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		assert.Equal(t, post.Content, postRes.Content)
 		assert.Equal(t, post.Description, postRes.Description)
 		assert.Equal(t, &[]string{"test1", "test2"}, postRes.Keywords)
+		assert.Equal(t, 1, postRes.ReadingTime)
+		assert.NotEmpty(t, postRes.Id)
+		assert.NotEmpty(t, postRes.CreatedAt)
+		assert.NotEmpty(t, postRes.UpdatedAt)
+	})
+
+	t.Run("200 - OK - with empty keywords", func(t *testing.T) {
+		// create post for test
+		post := &models.Post{
+			UserID:      user.ID,
+			Title:       "Test Title",
+			Slug:        "test-slug-2",
+			Content:     "Test Content to read in 1 second",
+			Description: "Test Description",
+			Keywords:    "",
+		}
+		err = conn.Models.Posts.Create(context.Background(), post)
+		assert.NoError(t, err)
+
+		res := testutil.NewRequest().
+			Get(basePostsPath+"/"+post.Slug).
+			GoWithHTTPHandler(t, e)
+
+		assert.Equal(t, http.StatusOK, res.Code())
+
+		var postRes api.PostResponse
+		err := res.UnmarshalBodyToObject(&postRes)
+		assert.NoError(t, err)
+
+		assert.Equal(t, post.Title, postRes.Title)
+		assert.Equal(t, post.Slug, postRes.Slug)
+		assert.Equal(t, post.Content, postRes.Content)
+		assert.Equal(t, post.Description, postRes.Description)
+		assert.Equal(t, &[]string{}, postRes.Keywords)
 		assert.Equal(t, 1, postRes.ReadingTime)
 		assert.NotEmpty(t, postRes.Id)
 		assert.NotEmpty(t, postRes.CreatedAt)
