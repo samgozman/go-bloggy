@@ -3,7 +3,7 @@ module github.com/samgozman/go-bloggy
 go 1.22.0
 
 require (
-	github.com/cenkalti/backoff/v4 v4.2.1
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/deepmap/oapi-codegen/v2 v2.1.0
 	github.com/getkin/kin-openapi v0.123.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
