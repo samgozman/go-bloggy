@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
+	"github.com/samgozman/go-bloggy/internal/github"
 )
 
 // Injectors from wire.go:
@@ -20,6 +21,8 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	if err != nil {
 		return nil, err
 	}
-	mainTempApp := newTempApp(database)
+	githubConfig := github.ProvideConfig(cfg)
+	service := github.ProvideService(githubConfig)
+	mainTempApp := newTempApp(database, service)
 	return mainTempApp, nil
 }

@@ -14,6 +14,18 @@ import (
 	"github.com/samgozman/go-bloggy/internal/middlewares"
 )
 
+func newTempApp(database *db.Database, gh *github.Service) *tempApp {
+	return &tempApp{
+		Database:      database,
+		GithubService: gh,
+	}
+}
+
+type tempApp struct {
+	Database      *db.Database
+	GithubService *github.Service
+}
+
 func main() {
 	cfg := config.NewConfigFromEnv()
 
