@@ -12,7 +12,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/handler"
 	"github.com/samgozman/go-bloggy/internal/jwt"
 	"github.com/samgozman/go-bloggy/internal/mailer"
-	"github.com/samgozman/go-bloggy/internal/middlewares"
+	"github.com/samgozman/go-bloggy/internal/server/middlewares"
 )
 
 // TODO: 1. Replace all structs with interfaces
@@ -27,6 +27,7 @@ func newTempApp(
 	jwt jwt.ServiceInterface,
 	cap captcha.ClientInterface,
 	mail mailer.ServiceInterface,
+	server *echo.Echo,
 ) *tempApp {
 	return &tempApp{
 		Database:      database,
@@ -34,6 +35,7 @@ func newTempApp(
 		JWTService:    jwt,
 		Captcha:       cap,
 		Mailer:        mail,
+		Server:        server,
 	}
 }
 
@@ -43,6 +45,7 @@ type tempApp struct {
 	JWTService    jwt.ServiceInterface
 	Captcha       captcha.ClientInterface
 	Mailer        mailer.ServiceInterface
+	Server        *echo.Echo
 }
 
 func main() {

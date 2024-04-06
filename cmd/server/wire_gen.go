@@ -14,6 +14,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/jwt"
 	"github.com/samgozman/go-bloggy/internal/mailer"
+	"github.com/samgozman/go-bloggy/internal/server"
 )
 
 // Injectors from wire.go:
@@ -37,6 +38,7 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	client := captcha.ProvideClient(hCaptchaSecret)
 	mailerConfig := mailer.ProvideConfig(cfg)
 	mailerService := mailer.ProvideService(mailerConfig)
-	mainTempApp := newTempApp(database, service, jwtService, client, mailerService)
+	echo := server.ProvideServer(jwtService)
+	mainTempApp := newTempApp(database, service, jwtService, client, mailerService, echo)
 	return mainTempApp, nil
 }

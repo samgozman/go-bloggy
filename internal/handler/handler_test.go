@@ -7,7 +7,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/mailer"
-	"github.com/samgozman/go-bloggy/internal/middlewares"
+	"github.com/samgozman/go-bloggy/internal/server/middlewares"
 	"github.com/stretchr/testify/mock"
 	"time"
 
