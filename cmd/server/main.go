@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	oapi "github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/handler"
@@ -14,25 +15,26 @@ import (
 )
 
 func main() {
-	config := NewConfigFromEnv()
-	dnConn, err := db.InitDatabase(config.DSN)
+	cfg := config.NewConfigFromEnv()
+
+	dnConn, err := db.InitDatabase(cfg.DSN)
 	if err != nil {
 		panic(err)
 	}
 
 	// TODO: Replace initialization with google/wire
 
-	ghService := github.NewService(config.GithubClientID, config.GithubClientSecret)
-	jwtService := jwt.NewService(config.JWTSecretKey)
-	hcaptchaService := hcaptcha.New(config.HCaptchaSecret)
-	mailerService := mailer.NewService(config.MailerJet.PublicKey, config.MailerJet.PrivateKey, &mailer.Options{
-		FromEmail:                    config.MailerJet.FromEmail,
-		FromName:                     config.MailerJet.FromName,
-		ConfirmationTemplateID:       config.MailerJet.ConfirmationTemplateID,
-		ConfirmationTemplateURLParam: config.MailerJet.ConfirmationTemplateURLParam,
-		PostTemplateID:               config.MailerJet.PostTemplateID,
-		PostTemplateURLParam:         config.MailerJet.PostTemplateURLParam,
-		UnsubscribeURLParam:          config.MailerJet.UnsubscribeURLParam,
+	ghService := github.NewService(cfg.GithubClientID, cfg.GithubClientSecret)
+	jwtService := jwt.NewService(cfg.JWTSecretKey)
+	hcaptchaService := hcaptcha.New(cfg.HCaptchaSecret)
+	mailerService := mailer.NewService(cfg.MailerJet.PublicKey, cfg.MailerJet.PrivateKey, &mailer.Options{
+		FromEmail:                    cfg.MailerJet.FromEmail,
+		FromName:                     cfg.MailerJet.FromName,
+		ConfirmationTemplateID:       cfg.MailerJet.ConfirmationTemplateID,
+		ConfirmationTemplateURLParam: cfg.MailerJet.ConfirmationTemplateURLParam,
+		PostTemplateID:               cfg.MailerJet.PostTemplateID,
+		PostTemplateURLParam:         cfg.MailerJet.PostTemplateURLParam,
+		UnsubscribeURLParam:          cfg.MailerJet.UnsubscribeURLParam,
 	})
 
 	apiHandler := handler.NewHandler(
@@ -41,12 +43,12 @@ func main() {
 		dnConn,
 		hcaptchaService,
 		mailerService,
-		config.AdminsExternalIDs,
+		cfg.AdminsExternalIDs,
 	)
 	server := echo.New()
 	server.Use(middleware.Logger())
 	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		// TODO: Pass allowed origins from config
+		// TODO: Pass allowed origins from cfg
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
@@ -59,5 +61,5 @@ func main() {
 
 	oapi.RegisterHandlers(server, apiHandler)
 
-	server.Logger.Fatal(server.Start(":" + config.Port))
+	server.Logger.Fatal(server.Start(":" + cfg.Port))
 }
