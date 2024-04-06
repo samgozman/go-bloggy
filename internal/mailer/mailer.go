@@ -43,6 +43,11 @@ func NewService(publicKey, privateKey string, options *Options) *Service {
 	}
 }
 
+type ServiceInterface interface {
+	SendConfirmationEmail(to, confirmationID string) error
+	SendPostEmail(pe *PostEmailSend) error
+}
+
 func (s *Service) SendConfirmationEmail(to, confirmationID string) error {
 	messagesInfo := []mailjet.InfoMessagesV31{
 		{

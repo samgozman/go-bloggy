@@ -19,4 +19,5 @@ func ProvideService(jwtSecretKey config.JWTSecretKey) *Service {
 var ProviderSet = wire.NewSet(
 	ProvideJWTSecretKey,
 	ProvideService,
+	wire.Bind(new(ServiceInterface), new(*Service)),
 )

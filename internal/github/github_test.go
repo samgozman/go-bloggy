@@ -12,10 +12,10 @@ import (
 func Test_NewGitHub(t *testing.T) {
 	g := NewService("dummyClientID", "dummyClientSecret")
 
-	assert.Equal(t, "dummyClientID", g.ClientID)
-	assert.Equal(t, "dummyClientSecret", g.ClientSecret)
-	assert.Equal(t, "https://github.com/login/oauth/access_token", g.OAuthAPIURL)
-	assert.Equal(t, "https://api.github.com/user", g.UserAPIURL)
+	assert.Equal(t, "dummyClientID", g.clientID)
+	assert.Equal(t, "dummyClientSecret", g.clientSecret)
+	assert.Equal(t, "https://github.com/login/oauth/access_token", g.oAuthAPIURL)
+	assert.Equal(t, "https://api.github.com/user", g.userAPIURL)
 }
 
 func Test_GetUserInfo(t *testing.T) {
@@ -66,9 +66,9 @@ func Test_GetUserInfo(t *testing.T) {
 
 		// Create a new Service instance
 		g := Service{
-			ClientID:     "dummyClientID",
-			ClientSecret: "dummyClientSecret",
-			UserAPIURL:   server.URL,
+			clientID:     "dummyClientID",
+			clientSecret: "dummyClientSecret",
+			userAPIURL:   server.URL,
 		}
 
 		// Call GetUserInfo
@@ -129,9 +129,9 @@ func Test_GetUserInfo(t *testing.T) {
 
 		// Create a new Service instance
 		g := Service{
-			ClientID:     "dummyClientID",
-			ClientSecret: "dummyClientSecret",
-			UserAPIURL:   server.URL,
+			clientID:     "dummyClientID",
+			clientSecret: "dummyClientSecret",
+			userAPIURL:   server.URL,
 		}
 
 		// Call GetUserInfo
@@ -159,9 +159,9 @@ func Test_ExchangeCodeForToken(t *testing.T) {
 		defer server.Close()
 
 		g := Service{
-			ClientID:     "dummyClientID",
-			ClientSecret: "dummyClientSecret",
-			OAuthAPIURL:  server.URL,
+			clientID:     "dummyClientID",
+			clientSecret: "dummyClientSecret",
+			oAuthAPIURL:  server.URL,
 		}
 
 		token, err := g.ExchangeCodeForToken(context.Background(), "dummyCode")
@@ -180,9 +180,9 @@ func Test_ExchangeCodeForToken(t *testing.T) {
 		defer server.Close()
 
 		g := Service{
-			ClientID:     "dummyClientID",
-			ClientSecret: "dummyClientSecret",
-			OAuthAPIURL:  server.URL,
+			clientID:     "dummyClientID",
+			clientSecret: "dummyClientSecret",
+			oAuthAPIURL:  server.URL,
 		}
 
 		token, err := g.ExchangeCodeForToken(context.Background(), "dummyCode")

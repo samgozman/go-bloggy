@@ -18,13 +18,15 @@ import (
 // TODO: 1. Replace all structs with interfaces
 // TODO: 2. Get rid of the tempApp struct
 // TODO: 3. Fix visibility of the providers init/new functions
+// TODO: 4. Add service mocks generation by interface
+// TODO: 5. Add generate command to the Makefile
 
 func newTempApp(
 	database *db.Database,
-	gh *github.Service,
-	jwt *jwt.Service,
-	cap *captcha.Client,
-	mail *mailer.Service,
+	gh github.ServiceInterface,
+	jwt jwt.ServiceInterface,
+	cap captcha.ClientInterface,
+	mail mailer.ServiceInterface,
 ) *tempApp {
 	return &tempApp{
 		Database:      database,
@@ -37,10 +39,10 @@ func newTempApp(
 
 type tempApp struct {
 	Database      *db.Database
-	GithubService *github.Service
-	JWTService    *jwt.Service
-	Captcha       *captcha.Client
-	Mailer        *mailer.Service
+	GithubService github.ServiceInterface
+	JWTService    jwt.ServiceInterface
+	Captcha       captcha.ClientInterface
+	Mailer        mailer.ServiceInterface
 }
 
 func main() {

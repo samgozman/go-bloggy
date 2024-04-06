@@ -20,4 +20,5 @@ func ProvideClient(secret config.HCaptchaSecret) *Client {
 var ProviderSet = wire.NewSet(
 	ProvideHCaptchaSecret,
 	ProvideClient,
+	wire.Bind(new(ClientInterface), new(*Client)),
 )
