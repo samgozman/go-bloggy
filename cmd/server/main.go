@@ -15,17 +15,23 @@ import (
 	"github.com/samgozman/go-bloggy/internal/middlewares"
 )
 
+// TODO: 1. Replace all structs with interfaces
+// TODO: 2. Get rid of the tempApp struct
+// TODO: 3. Fix visibility of the providers init/new functions
+
 func newTempApp(
 	database *db.Database,
 	gh *github.Service,
 	jwt *jwt.Service,
 	cap *captcha.Client,
+	mail *mailer.Service,
 ) *tempApp {
 	return &tempApp{
 		Database:      database,
 		GithubService: gh,
 		JWTService:    jwt,
 		Captcha:       cap,
+		Mailer:        mail,
 	}
 }
 
@@ -34,6 +40,7 @@ type tempApp struct {
 	GithubService *github.Service
 	JWTService    *jwt.Service
 	Captcha       *captcha.Client
+	Mailer        *mailer.Service
 }
 
 func main() {

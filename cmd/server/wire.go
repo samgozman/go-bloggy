@@ -12,6 +12,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/jwt"
+	"github.com/samgozman/go-bloggy/internal/mailer"
 )
 
 func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
@@ -20,6 +21,7 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 		github.ProviderSet,
 		jwt.ProviderSet,
 		captcha.ProviderSet,
+		mailer.ProviderSet,
 
 		newTempApp,
 	)
