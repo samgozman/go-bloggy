@@ -10,6 +10,7 @@ import (
 // TODO: 1. Fix visibility of the providers init/new functions
 // TODO: 2. Add service mocks generation by interface
 // TODO: 3. Add generate command to the Makefile
+// TODO: 4. Fix tests
 
 func newServerApp(
 	server *echo.Echo,
