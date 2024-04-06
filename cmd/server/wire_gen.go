@@ -20,7 +20,13 @@ import (
 
 // Injectors from wire.go:
 
-func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
+func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
+	jwtSecretKey := jwt.ProvideJWTSecretKey(cfg)
+	service := jwt.ProvideService(jwtSecretKey)
+	echo := server.ProvideServer(service)
+	handlerConfig := handler.ProvideConfig(cfg)
+	githubConfig := github.ProvideConfig(cfg)
+	githubService := github.ProvideService(githubConfig)
 	dsn := db.ProvideDSN(cfg)
 	gormDB, err := db.ProvideConnection(dsn)
 	if err != nil {
@@ -31,17 +37,11 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	if err != nil {
 		return nil, err
 	}
-	githubConfig := github.ProvideConfig(cfg)
-	service := github.ProvideService(githubConfig)
-	jwtSecretKey := jwt.ProvideJWTSecretKey(cfg)
-	jwtService := jwt.ProvideService(jwtSecretKey)
 	hCaptchaSecret := captcha.ProvideHCaptchaSecret(cfg)
 	client := captcha.ProvideClient(hCaptchaSecret)
 	mailerConfig := mailer.ProvideConfig(cfg)
 	mailerService := mailer.ProvideService(mailerConfig)
-	echo := server.ProvideServer(jwtService)
-	handlerConfig := handler.ProvideConfig(cfg)
-	handlerHandler := handler.ProvideHandler(handlerConfig, service, jwtService, database, client, mailerService)
-	mainTempApp := newTempApp(database, service, jwtService, client, mailerService, echo, handlerHandler)
-	return mainTempApp, nil
+	handlerHandler := handler.ProvideHandler(handlerConfig, githubService, service, database, client, mailerService)
+	mainServerApp := newServerApp(echo, handlerHandler)
+	return mainServerApp, nil
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/server"
 )
 
-func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
+func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
 	wire.Build(
 		db.ProviderSet,
 		github.ProviderSet,
@@ -27,8 +27,8 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 		server.ProvideServer,
 		handler.ProviderSet,
 
-		newTempApp,
+		newServerApp,
 	)
 
-	return &tempApp{}, nil
+	return &serverApp{}, nil
 }
