@@ -22,7 +22,7 @@ import (
 // TODO: 5. Add generate command to the Makefile
 
 func newTempApp(
-	database *db.Database,
+	database db.DatabaseInterface,
 	gh github.ServiceInterface,
 	jwt jwt.ServiceInterface,
 	cap captcha.ClientInterface,
@@ -38,7 +38,7 @@ func newTempApp(
 }
 
 type tempApp struct {
-	Database      *db.Database
+	Database      db.DatabaseInterface
 	GithubService github.ServiceInterface
 	JWTService    jwt.ServiceInterface
 	Captcha       captcha.ClientInterface
