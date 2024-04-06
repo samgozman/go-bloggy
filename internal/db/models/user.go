@@ -15,14 +15,14 @@ const (
 	GitHubAuthMethod AuthMethod = "github"
 )
 
-// UserDB is the database for the user data.
-type UserDB struct {
+// UserRepository is the database for the user data.
+type UserRepository struct {
 	conn *gorm.DB
 }
 
-// NewUserDB creates a new UserDB.
-func NewUserDB(conn *gorm.DB) *UserDB {
-	return &UserDB{
+// NewUserRepository creates a new UserRepository.
+func NewUserRepository(conn *gorm.DB) *UserRepository {
+	return &UserRepository{
 		conn: conn,
 	}
 }
@@ -64,8 +64,15 @@ func (u *User) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
+// UserRepositoryInterface is the interface for the UserRepository.
+type UserRepositoryInterface interface {
+	Upsert(ctx context.Context, user *User) error
+	GetByExternalID(ctx context.Context, externalID string) (*User, error)
+	GetByID(ctx context.Context, id int) (*User, error)
+}
+
 // Upsert inserts or updates the User data.
-func (db *UserDB) Upsert(ctx context.Context, user *User) error {
+func (db *UserRepository) Upsert(ctx context.Context, user *User) error {
 	err := db.conn.
 		WithContext(ctx).
 		Clauses(clause.OnConflict{
@@ -81,7 +88,7 @@ func (db *UserDB) Upsert(ctx context.Context, user *User) error {
 }
 
 // GetByExternalID returns the User data by the User.ExternalID.
-func (db *UserDB) GetByExternalID(ctx context.Context, externalID string) (*User, error) {
+func (db *UserRepository) GetByExternalID(ctx context.Context, externalID string) (*User, error) {
 	var user User
 	err := db.conn.WithContext(ctx).Where("external_id = ?", externalID).First(&user).Error
 	if err != nil {
@@ -92,7 +99,7 @@ func (db *UserDB) GetByExternalID(ctx context.Context, externalID string) (*User
 }
 
 // GetByID returns the User data by the User.ID.
-func (db *UserDB) GetByID(ctx context.Context, id int) (*User, error) {
+func (db *UserRepository) GetByID(ctx context.Context, id int) (*User, error) {
 	var user User
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&user).Error
 	if err != nil {

@@ -44,7 +44,7 @@ func (h *Handler) PostSubscribers(ctx echo.Context) error {
 		Email: req.Email,
 	}
 
-	if err := h.db.Models.Subscribers.Create(ctx.Request().Context(), &subscription); err != nil {
+	if err := h.db.Models().Subscribers().Create(ctx.Request().Context(), &subscription); err != nil {
 		// Note: we shouldn't tell duplicate error to the user for security reasons
 		if !errors.Is(err, models.ErrDuplicate) {
 			return ctx.JSON(http.StatusInternalServerError, api.RequestError{
@@ -81,7 +81,7 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 		})
 	}
 
-	subscriptionID, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.SubscriptionId)
+	subscriptionID, err := h.db.Models().Subscribers().GetByID(ctx.Request().Context(), req.SubscriptionId)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetSubscription,
@@ -89,7 +89,7 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 		})
 	}
 
-	if err := h.db.Models.Subscribers.Delete(ctx.Request().Context(), subscriptionID.ID.String()); err != nil {
+	if err := h.db.Models().Subscribers().Delete(ctx.Request().Context(), subscriptionID.ID.String()); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errDeleteSubscription,
 			Message: "Error deleting subscription",
@@ -124,7 +124,7 @@ func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
 	}
 
 	// Note: Token is used as subscription ID for simplicity
-	subscription, err := h.db.Models.Subscribers.GetByID(ctx.Request().Context(), req.Token)
+	subscription, err := h.db.Models().Subscribers().GetByID(ctx.Request().Context(), req.Token)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetSubscription,
@@ -137,7 +137,7 @@ func (h *Handler) PostSubscribersConfirm(ctx echo.Context) error {
 	}
 
 	subscription.IsConfirmed = true
-	if err := h.db.Models.Subscribers.Update(ctx.Request().Context(), subscription); err != nil {
+	if err := h.db.Models().Subscribers().Update(ctx.Request().Context(), subscription); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errUpdateSubscription,
 			Message: "Error updating subscription",

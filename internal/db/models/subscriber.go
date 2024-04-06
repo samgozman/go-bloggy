@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type SubscribersDB struct {
+type SubscribersRepository struct {
 	conn *gorm.DB
 }
 
-func NewSubscribersDB(conn *gorm.DB) *SubscribersDB {
-	return &SubscribersDB{
+func NewSubscribersRepository(conn *gorm.DB) *SubscribersRepository {
+	return &SubscribersRepository{
 		conn: conn,
 	}
 }
@@ -46,7 +46,16 @@ func (s *Subscriber) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
-func (db *SubscribersDB) Create(ctx context.Context, s *Subscriber) error {
+// SubscriberRepositoryInterface is the interface for the subscriber repository.
+type SubscriberRepositoryInterface interface {
+	Create(ctx context.Context, s *Subscriber) error
+	Update(ctx context.Context, s *Subscriber) error
+	GetByID(ctx context.Context, id string) (*Subscriber, error)
+	GetConfirmed(ctx context.Context) ([]*Subscriber, error)
+	Delete(ctx context.Context, id string) error
+}
+
+func (db *SubscribersRepository) Create(ctx context.Context, s *Subscriber) error {
 	err := db.conn.WithContext(ctx).Create(s).Error
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrCreateSubscription, mapGormError(err))
@@ -55,7 +64,7 @@ func (db *SubscribersDB) Create(ctx context.Context, s *Subscriber) error {
 	return nil
 }
 
-func (db *SubscribersDB) Update(ctx context.Context, s *Subscriber) error {
+func (db *SubscribersRepository) Update(ctx context.Context, s *Subscriber) error {
 	err := db.conn.WithContext(ctx).Save(s).Error
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrUpdateSubscription, mapGormError(err))
@@ -64,7 +73,7 @@ func (db *SubscribersDB) Update(ctx context.Context, s *Subscriber) error {
 	return nil
 }
 
-func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, error) {
+func (db *SubscribersRepository) GetByID(ctx context.Context, id string) (*Subscriber, error) {
 	var s Subscriber
 	err := db.conn.WithContext(ctx).Where("id = ?", id).First(&s).Error
 	if err != nil {
@@ -74,7 +83,7 @@ func (db *SubscribersDB) GetByID(ctx context.Context, id string) (*Subscriber, e
 	return &s, nil
 }
 
-func (db *SubscribersDB) GetConfirmed(ctx context.Context) ([]*Subscriber, error) {
+func (db *SubscribersRepository) GetConfirmed(ctx context.Context) ([]*Subscriber, error) {
 	var s []*Subscriber
 	err := db.conn.WithContext(ctx).
 		Model(&Subscriber{}).
@@ -88,7 +97,7 @@ func (db *SubscribersDB) GetConfirmed(ctx context.Context) ([]*Subscriber, error
 	return s, nil
 }
 
-func (db *SubscribersDB) Delete(ctx context.Context, id string) error {
+func (db *SubscribersRepository) Delete(ctx context.Context, id string) error {
 	res := db.conn.WithContext(ctx).Where("id = ?", id).Delete(&Subscriber{})
 	if res.Error != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteSubscription, mapGormError(res.Error))

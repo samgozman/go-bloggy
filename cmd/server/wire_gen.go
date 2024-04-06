@@ -20,7 +20,12 @@ import (
 
 func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	dsn := db.ProvideDSN(cfg)
-	database, err := db.ProvideDatabase(dsn)
+	gormDB, err := db.ProvideConnection(dsn)
+	if err != nil {
+		return nil, err
+	}
+	models := db.ProvideModels(gormDB)
+	database, err := db.ProvideDatabase(gormDB, models)
 	if err != nil {
 		return nil, err
 	}

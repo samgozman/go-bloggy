@@ -32,7 +32,7 @@ func Test_PostPosts(t *testing.T) {
 		AuthMethod: models.GitHubAuthMethod,
 		Login:      "testUser",
 	}
-	err := conn.Models.Users.Upsert(context.Background(), user)
+	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
 	t.Run("OK", func(t *testing.T) {
@@ -73,7 +73,7 @@ func Test_PostPosts(t *testing.T) {
 		assert.NotEmpty(t, post.UpdatedAt)
 
 		// check that post is in the database
-		postFromDB, err := conn.Models.Posts.GetBySlug(context.Background(), req.Slug)
+		postFromDB, err := conn.Models().Posts().GetBySlug(context.Background(), req.Slug)
 		assert.NoError(t, err)
 		assert.Equal(t, req.Title, postFromDB.Title)
 		assert.Equal(t, req.Slug, postFromDB.Slug)
@@ -165,7 +165,7 @@ func Test_PostPosts(t *testing.T) {
 			Description: post1.Description,
 		}
 
-		err := conn.Models.Posts.Create(context.Background(), &post2)
+		err := conn.Models().Posts().Create(context.Background(), &post2)
 		assert.NoError(t, err)
 
 		res := testutil.NewRequest().
@@ -227,7 +227,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 		AuthMethod: models.GitHubAuthMethod,
 		Login:      "testUser",
 	}
-	err := conn.Models.Users.Upsert(context.Background(), user)
+	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
 	e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
@@ -242,7 +242,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 			Description: "Test Description",
 			Keywords:    "test1,test2",
 		}
-		err = conn.Models.Posts.Create(context.Background(), post)
+		err = conn.Models().Posts().Create(context.Background(), post)
 		assert.NoError(t, err)
 
 		res := testutil.NewRequest().
@@ -276,7 +276,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 			Description: "Test Description",
 			Keywords:    "",
 		}
-		err = conn.Models.Posts.Create(context.Background(), post)
+		err = conn.Models().Posts().Create(context.Background(), post)
 		assert.NoError(t, err)
 
 		res := testutil.NewRequest().
@@ -341,7 +341,7 @@ func TestHandler_GetPosts(t *testing.T) {
 		AuthMethod: models.GitHubAuthMethod,
 		Login:      "testUser",
 	}
-	err := conn.Models.Users.Upsert(context.Background(), user)
+	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
 	e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
@@ -368,7 +368,7 @@ func TestHandler_GetPosts(t *testing.T) {
 		},
 	}
 	for _, post := range posts {
-		err = conn.Models.Posts.Create(context.Background(), post)
+		err = conn.Models().Posts().Create(context.Background(), post)
 		assert.NoError(t, err)
 	}
 
@@ -465,7 +465,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		AuthMethod: models.GitHubAuthMethod,
 		Login:      "testUser",
 	}
-	err := conn.Models.Users.Upsert(context.Background(), user)
+	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
 	basePath := basePostsPath + "/"
@@ -478,7 +478,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		Description: "Test Description",
 		Keywords:    "test1,test2",
 	}
-	err = conn.Models.Posts.Create(context.Background(), post)
+	err = conn.Models().Posts().Create(context.Background(), post)
 	assert.NoError(t, err)
 
 	t.Run("OK", func(t *testing.T) {
@@ -518,7 +518,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		assert.NotEmpty(t, postRes.UpdatedAt)
 
 		// check that post is in the database
-		postFromDB, err := conn.Models.Posts.GetBySlug(context.Background(), post.Slug)
+		postFromDB, err := conn.Models().Posts().GetBySlug(context.Background(), post.Slug)
 		assert.NoError(t, err)
 		assert.Equal(t, req.Title, postFromDB.Title)
 		assert.Equal(t, post.Slug, postFromDB.Slug)
@@ -628,7 +628,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		AuthMethod: models.GitHubAuthMethod,
 		Login:      "testUser",
 	}
-	assert.NoError(t, conn.Models.Users.Upsert(context.Background(), user))
+	assert.NoError(t, conn.Models().Users().Upsert(context.Background(), user))
 
 	// create post for test
 	post := &models.Post{
@@ -639,14 +639,14 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 		Description: "Test Description",
 		Keywords:    "test1,test2",
 	}
-	assert.NoError(t, conn.Models.Posts.Create(context.Background(), post))
+	assert.NoError(t, conn.Models().Posts().Create(context.Background(), post))
 
 	t.Run("201 - OK", func(t *testing.T) {
 		e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		// create subscription for test
-		err := conn.Models.Subscribers.Create(context.Background(), &models.Subscriber{
+		err := conn.Models().Subscribers().Create(context.Background(), &models.Subscriber{
 			Email:       uuid.New().String() + "@test.com",
 			IsConfirmed: true,
 		})
@@ -677,7 +677,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 			Description:         "Test Description",
 			SentToSubscribersAt: time.Now(),
 		}
-		assert.NoError(t, conn.Models.Posts.Create(context.Background(), p))
+		assert.NoError(t, conn.Models().Posts().Create(context.Background(), p))
 
 		res := testutil.NewRequest().
 			Post(basePostsPath+"/"+p.Slug+"/send-email").

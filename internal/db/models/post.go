@@ -12,14 +12,14 @@ import (
 // AvgWordsPerMinute is the average number of words per minute a person can read.
 const AvgWordsPerMinute = 250
 
-// PostDB is the database for the post data.
-type PostDB struct {
+// PostRepository is the database for the post data.
+type PostRepository struct {
 	conn *gorm.DB
 }
 
-// NewPostDB creates a new PostDB.
-func NewPostDB(conn *gorm.DB) *PostDB {
-	return &PostDB{
+// NewPostRepository creates a new PostRepository.
+func NewPostRepository(conn *gorm.DB) *PostRepository {
+	return &PostRepository{
 		conn: conn,
 	}
 }
@@ -97,8 +97,17 @@ func (p *Post) CountReadingTime() time.Duration {
 	return time.Duration(readingTimeInSeconds) * time.Second
 }
 
+// PostRepositoryInterface is the interface for the PostRepository.
+type PostRepositoryInterface interface {
+	Create(ctx context.Context, p *Post) error
+	GetBySlug(ctx context.Context, slug string) (*Post, error)
+	FindAll(ctx context.Context, page, perPage int) ([]*Post, error)
+	Update(ctx context.Context, p *Post) error
+	Count(ctx context.Context) (int64, error)
+}
+
 // Create creates a new Post.
-func (db *PostDB) Create(ctx context.Context, p *Post) error {
+func (db *PostRepository) Create(ctx context.Context, p *Post) error {
 	err := db.conn.WithContext(ctx).Create(p).Error
 	if err != nil {
 		return mapGormError(err)
@@ -108,7 +117,7 @@ func (db *PostDB) Create(ctx context.Context, p *Post) error {
 }
 
 // GetBySlug finds a Post by its URL Slug.
-func (db *PostDB) GetBySlug(ctx context.Context, slug string) (*Post, error) {
+func (db *PostRepository) GetBySlug(ctx context.Context, slug string) (*Post, error) {
 	var p Post
 	err := db.conn.WithContext(ctx).Where("slug = ?", slug).First(&p).Error
 	if err != nil {
@@ -120,7 +129,7 @@ func (db *PostDB) GetBySlug(ctx context.Context, slug string) (*Post, error) {
 
 // FindAll returns all the posts with pagination, sorted by the created time.
 // Selects only the necessary fields to reduce the payload - slug, title, description, keywords, created_at, sent_to_subscribers_at.
-func (db *PostDB) FindAll(ctx context.Context, page, perPage int) ([]*Post, error) {
+func (db *PostRepository) FindAll(ctx context.Context, page, perPage int) ([]*Post, error) {
 	var posts []*Post
 	err := db.conn.
 		WithContext(ctx).
@@ -137,7 +146,7 @@ func (db *PostDB) FindAll(ctx context.Context, page, perPage int) ([]*Post, erro
 }
 
 // Update updates the Post.
-func (db *PostDB) Update(ctx context.Context, p *Post) error {
+func (db *PostRepository) Update(ctx context.Context, p *Post) error {
 	err := db.conn.WithContext(ctx).Save(p).Error
 	if err != nil {
 		return mapGormError(err)
@@ -147,7 +156,7 @@ func (db *PostDB) Update(ctx context.Context, p *Post) error {
 }
 
 // Count returns the total number of posts.
-func (db *PostDB) Count(ctx context.Context) (int64, error) {
+func (db *PostRepository) Count(ctx context.Context) (int64, error) {
 	var count int64
 	err := db.conn.WithContext(ctx).Model(&Post{}).Count(&count).Error
 	if err != nil {

@@ -65,7 +65,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		assert.Equal(t, "someToken", body.Token)
 
 		// Check if the user was created in the database
-		dbUser, err := conn.Models.Users.GetByExternalID(context.Background(), ghUserID)
+		dbUser, err := conn.Models().Users().GetByExternalID(context.Background(), ghUserID)
 		assert.NoError(t, err)
 		assert.Equal(t, ghUserID, dbUser.ExternalID)
 		assert.Equal(t, ghUser.Login, dbUser.Login)
@@ -94,7 +94,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			Return("someToken", nil)
 
 		// Create user in the database
-		err := conn.Models.Users.Upsert(context.Background(), &models.User{
+		err := conn.Models().Users().Upsert(context.Background(), &models.User{
 			ExternalID: ghUserID,
 			Login:      ghUser.Login,
 			AuthMethod: models.GitHubAuthMethod,

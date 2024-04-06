@@ -31,12 +31,11 @@ func initDatabaseTest() (*db.Database, error) {
 		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
 
-	return &db.Database{
-		Conn: gormDB,
-		Models: &db.Models{
-			Users:       models.NewUserDB(gormDB),
-			Posts:       models.NewPostDB(gormDB),
-			Subscribers: models.NewSubscribersDB(gormDB),
-		},
-	}, nil
+	m := db.NewModels(
+		models.NewUserRepository(gormDB),
+		models.NewPostRepository(gormDB),
+		models.NewSubscribersRepository(gormDB),
+	)
+
+	return db.NewDatabase(gormDB, m), nil
 }

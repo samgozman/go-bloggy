@@ -61,7 +61,7 @@ func (h *Handler) PostLoginGithubAuthorize(ctx echo.Context) error {
 		})
 	}
 
-	err = h.db.Models.Users.Upsert(ctx.Request().Context(), &models.User{
+	err = h.db.Models().Users().Upsert(ctx.Request().Context(), &models.User{
 		ExternalID: strconv.Itoa(user.ID),
 		Login:      user.Login,
 		AuthMethod: models.GitHubAuthMethod,

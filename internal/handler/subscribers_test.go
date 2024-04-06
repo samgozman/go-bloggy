@@ -47,7 +47,7 @@ func Test_PostSubscribers(t *testing.T) {
 
 		// Check that the subscription was created
 		var emails []string
-		err := conn.Conn.Model(&models.Subscriber{}).
+		err := conn.GetConn().Model(&models.Subscriber{}).
 			Where("email = ?", "some@email.com").
 			Pluck("email", &emails).Error
 		assert.NoError(t, err)
@@ -97,7 +97,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
@@ -113,7 +113,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, res.Code())
 
 		// Check that the subscription was deleted
-		_, err = conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
+		_, err = conn.Models().Subscribers().GetByID(context.Background(), sub.ID.String())
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, models.ErrNotFound)
 	})
@@ -156,7 +156,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
@@ -178,7 +178,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.Code())
 
 		// Check that the subscription was confirmed
-		retrievedSubscription, err := conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
+		retrievedSubscription, err := conn.Models().Subscribers().GetByID(context.Background(), sub.ID.String())
 		assert.NoError(t, err)
 		assert.True(t, retrievedSubscription.IsConfirmed)
 
@@ -218,7 +218,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{

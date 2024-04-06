@@ -12,15 +12,72 @@ import (
 
 // Models is a collection of all models in the database.
 type Models struct {
-	Users       *models.UserDB
-	Posts       *models.PostDB
-	Subscribers *models.SubscribersDB
+	users       models.UserRepositoryInterface
+	posts       models.PostRepositoryInterface
+	subscribers models.SubscriberRepositoryInterface
+}
+
+// NewModels creates a new Models instance.
+func NewModels(users models.UserRepositoryInterface,
+	posts models.PostRepositoryInterface,
+	subscribers models.SubscriberRepositoryInterface,
+) *Models {
+	return &Models{
+		users:       users,
+		posts:       posts,
+		subscribers: subscribers,
+	}
+}
+
+// Users returns the models.UserRepository.
+func (m *Models) Users() models.UserRepositoryInterface {
+	return m.users
+}
+
+// Posts returns the models.PostRepository.
+func (m *Models) Posts() models.PostRepositoryInterface {
+	return m.posts
+}
+
+// Subscribers returns the models.SubscriberRepository.
+func (m *Models) Subscribers() models.SubscriberRepositoryInterface {
+	return m.subscribers
+}
+
+type ModelsInterface interface {
+	Users() models.UserRepositoryInterface
+	Posts() models.PostRepositoryInterface
+	Subscribers() models.SubscriberRepositoryInterface
 }
 
 // Database is the database connection.
 type Database struct {
-	Conn   *gorm.DB
-	Models *Models
+	conn   *gorm.DB
+	models ModelsInterface
+}
+
+// NewDatabase creates a new Database instance.
+func NewDatabase(conn *gorm.DB, models ModelsInterface) *Database {
+	return &Database{
+		conn:   conn,
+		models: models,
+	}
+}
+
+// Models returns the database models.
+func (d *Database) Models() ModelsInterface {
+	return d.models
+}
+
+// GetConn returns the database connection.
+func (d *Database) GetConn() *gorm.DB {
+	return d.conn
+}
+
+// DatabaseInterface is the interface for the database.
+type DatabaseInterface interface {
+	GetConn() *gorm.DB
+	Models() ModelsInterface
 }
 
 // connectToPG connects to the Postgres database and retries until it is ready.
@@ -50,23 +107,23 @@ func connectToPG(dsn string) (*gorm.DB, error) {
 
 // InitDatabase creates a new database connection & migrates the schema.
 func InitDatabase(dsn string) (*Database, error) {
-	db, err := connectToPG(dsn)
+	conn, err := connectToPG(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToConnectDatabase, err)
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&models.User{}, &models.Post{}, &models.Subscriber{})
+	// TODO: add external migrator, do not use AutoMigrate in production
+	err = conn.AutoMigrate(&models.User{}, &models.Post{}, &models.Subscriber{})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMigrateDatabase, err)
 	}
 
-	return &Database{
-		Conn: db,
-		Models: &Models{
-			Users:       models.NewUserDB(db),
-			Posts:       models.NewPostDB(db),
-			Subscribers: models.NewSubscribersDB(db),
-		},
-	}, nil
+	m := NewModels(
+		models.NewUserRepository(conn),
+		models.NewPostRepository(conn),
+		models.NewSubscribersRepository(conn),
+	)
+
+	return NewDatabase(conn, m), nil
 }
