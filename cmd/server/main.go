@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	oapi "github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/captcha"
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
@@ -18,11 +19,13 @@ func newTempApp(
 	database *db.Database,
 	gh *github.Service,
 	jwt *jwt.Service,
+	cap *captcha.Client,
 ) *tempApp {
 	return &tempApp{
 		Database:      database,
 		GithubService: gh,
 		JWTService:    jwt,
+		Captcha:       cap,
 	}
 }
 
@@ -30,6 +33,7 @@ type tempApp struct {
 	Database      *db.Database
 	GithubService *github.Service
 	JWTService    *jwt.Service
+	Captcha       *captcha.Client
 }
 
 func main() {
@@ -44,7 +48,7 @@ func main() {
 
 	ghService := github.NewService(cfg.GithubClientID, cfg.GithubClientSecret)
 	jwtService := jwt.NewService(string(cfg.JWTSecretKey))
-	hcaptchaService := hcaptcha.New(cfg.HCaptchaSecret)
+	hcaptchaService := hcaptcha.New(string(cfg.HCaptchaSecret))
 	mailerService := mailer.NewService(cfg.MailerJet.PublicKey, cfg.MailerJet.PrivateKey, &mailer.Options{
 		FromEmail:                    cfg.MailerJet.FromEmail,
 		FromName:                     cfg.MailerJet.FromName,

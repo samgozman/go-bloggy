@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"github.com/samgozman/go-bloggy/internal/captcha"
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
@@ -26,6 +27,8 @@ func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	service := github.ProvideService(githubConfig)
 	jwtSecretKey := jwt.ProvideJWTSecretKey(cfg)
 	jwtService := jwt.ProvideService(jwtSecretKey)
-	mainTempApp := newTempApp(database, service, jwtService)
+	hCaptchaSecret := captcha.ProvideHCaptchaSecret(cfg)
+	client := captcha.ProvideClient(hCaptchaSecret)
+	mainTempApp := newTempApp(database, service, jwtService, client)
 	return mainTempApp, nil
 }
