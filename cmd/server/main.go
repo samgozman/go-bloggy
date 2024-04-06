@@ -14,22 +14,28 @@ import (
 	"github.com/samgozman/go-bloggy/internal/middlewares"
 )
 
-func newTempApp(database *db.Database, gh *github.Service) *tempApp {
+func newTempApp(
+	database *db.Database,
+	gh *github.Service,
+	jwt *jwt.Service,
+) *tempApp {
 	return &tempApp{
 		Database:      database,
 		GithubService: gh,
+		JWTService:    jwt,
 	}
 }
 
 type tempApp struct {
 	Database      *db.Database
 	GithubService *github.Service
+	JWTService    *jwt.Service
 }
 
 func main() {
 	cfg := config.NewConfigFromEnv()
 
-	dnConn, err := db.InitDatabase(cfg.DSN)
+	dnConn, err := db.InitDatabase(string(cfg.DSN))
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +43,7 @@ func main() {
 	// TODO: Replace initialization with google/wire
 
 	ghService := github.NewService(cfg.GithubClientID, cfg.GithubClientSecret)
-	jwtService := jwt.NewService(cfg.JWTSecretKey)
+	jwtService := jwt.NewService(string(cfg.JWTSecretKey))
 	hcaptchaService := hcaptcha.New(cfg.HCaptchaSecret)
 	mailerService := mailer.NewService(cfg.MailerJet.PublicKey, cfg.MailerJet.PrivateKey, &mailer.Options{
 		FromEmail:                    cfg.MailerJet.FromEmail,

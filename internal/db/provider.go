@@ -6,13 +6,13 @@ import (
 )
 
 // ProvideDSN provides the DSN from the config.
-func ProvideDSN(cfg *config.Config) string {
+func ProvideDSN(cfg *config.Config) config.DSN {
 	return cfg.DSN
 }
 
 // ProvideDatabase provides a new database connection.
-func ProvideDatabase(dsn string) (*Database, error) {
-	return InitDatabase(dsn)
+func ProvideDatabase(dsn config.DSN) (*Database, error) {
+	return InitDatabase(string(dsn))
 }
 
 // ProviderSet is a wire provider set that provides the database connection.

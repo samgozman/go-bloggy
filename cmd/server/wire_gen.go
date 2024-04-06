@@ -11,18 +11,21 @@ import (
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
+	"github.com/samgozman/go-bloggy/internal/jwt"
 )
 
 // Injectors from wire.go:
 
 func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
-	string2 := db.ProvideDSN(cfg)
-	database, err := db.ProvideDatabase(string2)
+	dsn := db.ProvideDSN(cfg)
+	database, err := db.ProvideDatabase(dsn)
 	if err != nil {
 		return nil, err
 	}
 	githubConfig := github.ProvideConfig(cfg)
 	service := github.ProvideService(githubConfig)
-	mainTempApp := newTempApp(database, service)
+	jwtSecretKey := jwt.ProvideJWTSecretKey(cfg)
+	jwtService := jwt.ProvideService(jwtSecretKey)
+	mainTempApp := newTempApp(database, service, jwtService)
 	return mainTempApp, nil
 }

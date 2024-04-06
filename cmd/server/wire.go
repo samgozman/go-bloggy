@@ -10,12 +10,14 @@ import (
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
+	"github.com/samgozman/go-bloggy/internal/jwt"
 )
 
 func initApp(ctx context.Context, cfg *config.Config) (*tempApp, error) {
 	wire.Build(
 		db.ProviderSet,
 		github.ProviderSet,
+		jwt.ProviderSet,
 
 		newTempApp,
 	)
