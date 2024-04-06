@@ -27,7 +27,9 @@ func newTempApp(
 	jwt jwt.ServiceInterface,
 	cap captcha.ClientInterface,
 	mail mailer.ServiceInterface,
+
 	server *echo.Echo,
+	handler oapi.ServerInterface,
 ) *tempApp {
 	return &tempApp{
 		Database:      database,
@@ -35,7 +37,9 @@ func newTempApp(
 		JWTService:    jwt,
 		Captcha:       cap,
 		Mailer:        mail,
-		Server:        server,
+
+		Server:  server,
+		Handler: handler,
 	}
 }
 
@@ -45,7 +49,9 @@ type tempApp struct {
 	JWTService    jwt.ServiceInterface
 	Captcha       captcha.ClientInterface
 	Mailer        mailer.ServiceInterface
-	Server        *echo.Echo
+
+	Server  *echo.Echo
+	Handler oapi.ServerInterface
 }
 
 func main() {
@@ -71,13 +77,13 @@ func main() {
 		UnsubscribeURLParam:          cfg.MailerJet.UnsubscribeURLParam,
 	})
 
-	apiHandler := handler.NewHandler(
+	apiHandler := handler.ProvideHandler(
+		handler.ProvideConfig(cfg),
 		ghService,
 		jwtService,
 		dnConn,
 		hcaptchaService,
 		mailerService,
-		cfg.AdminsExternalIDs,
 	)
 	server := echo.New()
 	server.Use(middleware.Logger())

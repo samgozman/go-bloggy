@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/kataras/hcaptcha"
 	"github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/mailer"
@@ -81,7 +82,8 @@ func registerHandlers(conn *db.Database, adminsIDs []string) (
 
 	// Create echo instance
 	e := echo.New()
-	h := NewHandler(g, j, conn, hc, ms, adminsIDs)
+	cfg := ProvideConfig(&config.Config{AdminsExternalIDs: adminsIDs})
+	h := ProvideHandler(cfg, g, j, conn, hc, ms)
 	e.Use(middlewares.JWTAuth(j))
 
 	api.RegisterHandlers(e, h)
