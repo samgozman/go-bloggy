@@ -22,7 +22,7 @@ jobs:
       - name: Set up golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.57
+          version: v1.57.1
 
       - name: Get Go dependencies
         run: go mod download
