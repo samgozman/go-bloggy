@@ -16,7 +16,7 @@ func ProvideService(jwtSecretKey config.JWTSecretKey) *Service {
 }
 
 // ProviderSet is a wire provider set for JWT.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideJWTSecretKey,
 	ProvideService,
 	wire.Bind(new(ServiceInterface), new(*Service)),

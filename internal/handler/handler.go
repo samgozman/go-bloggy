@@ -51,7 +51,7 @@ func ProvideHandler(
 }
 
 // ProviderSet is a wire provider set that includes all the providers for the handler package.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideConfig,
 	ProvideHandler,
 	wire.Bind(new(oapi.ServerInterface), new(*Handler)),

@@ -45,7 +45,7 @@ func ProvideDatabase(conn *gorm.DB, models ModelsInterface) (*Database, error) {
 }
 
 // ProviderSet is a wire provider set that provides the database connection.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideDSN,
 	ProvideConnection,
 	ProvideModels,

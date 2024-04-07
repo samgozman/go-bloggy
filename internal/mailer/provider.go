@@ -36,7 +36,7 @@ func ProvideService(cfg *Config) *Service {
 }
 
 // ProviderSet is a wire.ProviderSet for mailer package.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideConfig,
 	ProvideService,
 	wire.Bind(new(types.ServiceInterface), new(*Service)),

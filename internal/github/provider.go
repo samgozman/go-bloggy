@@ -25,7 +25,7 @@ func ProvideService(cfg *Config) *Service {
 }
 
 // ProviderSet is a Wire provider set that includes all the providers from the github package.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideConfig,
 	ProvideService,
 	wire.Bind(new(ServiceInterface), new(*Service)),

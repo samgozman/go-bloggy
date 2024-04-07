@@ -17,7 +17,7 @@ func ProvideClient(secret config.HCaptchaSecret) *Client {
 }
 
 // ProviderSet is a wire provider set for HCaptcha.
-var ProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideHCaptchaSecret,
 	ProvideClient,
 	wire.Bind(new(ClientInterface), new(*Client)),
