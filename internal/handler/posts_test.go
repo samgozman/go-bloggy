@@ -36,7 +36,7 @@ func Test_PostPosts(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("OK", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PostRequest{
@@ -85,7 +85,7 @@ func Test_PostPosts(t *testing.T) {
 	})
 
 	t.Run("400 - errRequestBodyBinding - ErrUnsupportedMediaType", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PostRequest{
@@ -115,7 +115,7 @@ func Test_PostPosts(t *testing.T) {
 	})
 
 	t.Run("400 - errGetUser", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(uuid.New().String(), nil)
 
 		req := api.PostRequest{
@@ -144,7 +144,7 @@ func Test_PostPosts(t *testing.T) {
 	})
 
 	t.Run("409 - errDuplicatePost", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		post1 := api.PostRequest{
@@ -185,7 +185,7 @@ func Test_PostPosts(t *testing.T) {
 	})
 
 	t.Run("400 - errValidationFailed", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PostRequest{
@@ -230,7 +230,7 @@ func TestHandler_GetPostsSlug(t *testing.T) {
 	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
-	e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+	e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 
 	t.Run("200 - OK", func(t *testing.T) {
 		// create post for test
@@ -344,7 +344,7 @@ func TestHandler_GetPosts(t *testing.T) {
 	err := conn.Models().Users().Upsert(context.Background(), user)
 	assert.NoError(t, err)
 
-	e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+	e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 
 	// create posts for test
 	posts := []*models.Post{
@@ -482,7 +482,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("OK", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PutPostRequest{
@@ -530,7 +530,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 	})
 
 	t.Run("400 - errRequestBodyBinding - ErrUnsupportedMediaType", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PutPostRequest{
@@ -559,7 +559,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 	})
 
 	t.Run("404 - errPostNotFound", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, nil)
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PutPostRequest{
@@ -587,7 +587,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 	})
 
 	t.Run("400 - errValidationFailed", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		req := api.PutPostRequest{
@@ -642,7 +642,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 	assert.NoError(t, conn.Models().Posts().Create(context.Background(), post))
 
 	t.Run("201 - OK", func(t *testing.T) {
-		e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, mockMailerService, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		// create subscription for test
@@ -665,7 +665,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 	})
 
 	t.Run("409 - errPostAlreadySent", func(t *testing.T) {
-		e, _, mockJwtService, mockMailerService, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, mockMailerService, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		// create a post for test that was already sent
@@ -698,7 +698,7 @@ func TestHandler_PostPostsSlugSendEmail(t *testing.T) {
 	})
 
 	t.Run("404 - errPostNotFound", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(user.ID)})
+		e, _, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(user.ID)})
 		mockJwtService.On("ParseTokenString", jwtToken).Return(user.ExternalID, nil)
 
 		res := testutil.NewRequest().

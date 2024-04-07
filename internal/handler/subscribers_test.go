@@ -20,7 +20,7 @@ func Test_PostSubscribers(t *testing.T) {
 	}
 
 	t.Run("Created", func(t *testing.T) {
-		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "some@email.com",
@@ -57,7 +57,7 @@ func Test_PostSubscribers(t *testing.T) {
 	})
 
 	t.Run("BadRequest", func(t *testing.T) {
-		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "invalid-email",
@@ -90,7 +90,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	}
 
 	t.Run("NoContent", func(t *testing.T) {
-		e, _, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email: "some@email.space",
@@ -119,7 +119,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest ", func(t *testing.T) {
-		e, _, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: "f87c5cc0-ec7b-41eb-8d23-0abe0938efd2",
@@ -148,7 +148,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	}
 
 	t.Run("OK - NoContent", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some@email.space",
@@ -186,7 +186,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest - not found", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
 			Token:   "ce247e1d-a371-42fc-b36b-26b566c0096c",
@@ -210,7 +210,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	})
 
 	t.Run("OK - if already confirmed", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some2@email.space",

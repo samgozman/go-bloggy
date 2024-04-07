@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"github.com/samgozman/go-bloggy/internal/mailer"
+	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 	"net/http"
 	"regexp"
 	"strings"

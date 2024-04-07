@@ -3,49 +3,19 @@ package mailer
 import (
 	"fmt"
 	"github.com/mailjet/mailjet-apiv3-go/v4"
+	"github.com/samgozman/go-bloggy/internal/mailer/types"
 )
 
 type Service struct {
-	client  MailjetInterface
-	options *Options
+	client  types.MailjetInterface
+	options *types.Options
 }
 
-type MailjetInterface interface {
-	SendMailV31(data *mailjet.MessagesV31, options ...mailjet.RequestOptions) (*mailjet.ResultsV31, error)
-}
-
-type Options struct {
-	FromEmail                    string
-	FromName                     string
-	ConfirmationTemplateID       int
-	ConfirmationTemplateURLParam string
-	PostTemplateID               int
-	PostTemplateURLParam         string
-	UnsubscribeURLParam          string
-}
-
-type PostEmailSend struct {
-	To          []*Subscriber
-	Title       string
-	Description string
-	Slug        string
-}
-
-type Subscriber struct {
-	ID    string
-	Email string
-}
-
-func NewService(publicKey, privateKey string, options *Options) *Service {
+func NewService(publicKey, privateKey string, options *types.Options) *Service {
 	return &Service{
 		client:  mailjet.NewMailjetClient(publicKey, privateKey),
 		options: options,
 	}
-}
-
-type ServiceInterface interface {
-	SendConfirmationEmail(to, confirmationID string) error
-	SendPostEmail(pe *PostEmailSend) error
 }
 
 func (s *Service) SendConfirmationEmail(to, confirmationID string) error {
@@ -78,7 +48,7 @@ func (s *Service) SendConfirmationEmail(to, confirmationID string) error {
 	return nil
 }
 
-func (s *Service) SendPostEmail(pe *PostEmailSend) error {
+func (s *Service) SendPostEmail(pe *types.PostEmailSend) error {
 	messageFrom := mailjet.RecipientV31{
 		Email: s.options.FromEmail,
 		Name:  s.options.FromName,

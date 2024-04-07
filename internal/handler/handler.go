@@ -8,7 +8,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
 	"github.com/samgozman/go-bloggy/internal/jwt"
-	"github.com/samgozman/go-bloggy/internal/mailer"
+	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 )
 
 type Config struct {

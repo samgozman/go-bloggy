@@ -3,6 +3,7 @@ package mailer
 import (
 	"errors"
 	"github.com/mailjet/mailjet-apiv3-go/v4"
+	"github.com/samgozman/go-bloggy/internal/mailer/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -13,7 +14,7 @@ import (
 func TestService_SendConfirmationEmail(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		mockClient := mockMailer.NewMockMailjetInterface(t)
-		s := NewService("", "", &Options{})
+		s := NewService("", "", &types.Options{})
 		s.client = mockClient
 
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, nil)
@@ -25,7 +26,7 @@ func TestService_SendConfirmationEmail(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		mockClient := mockMailer.NewMockMailjetInterface(t)
-		s := NewService("", "", &Options{})
+		s := NewService("", "", &types.Options{})
 		s.client = mockClient
 
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, errors.New("error"))
@@ -40,13 +41,13 @@ func TestService_SendConfirmationEmail(t *testing.T) {
 func TestService_SendPostEmail(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		mockClient := mockMailer.NewMockMailjetInterface(t)
-		s := NewService("", "", &Options{})
+		s := NewService("", "", &types.Options{})
 		s.client = mockClient
 
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, nil)
 
-		err := s.SendPostEmail(&PostEmailSend{
-			To: []*Subscriber{
+		err := s.SendPostEmail(&types.PostEmailSend{
+			To: []*types.Subscriber{
 				{
 					ID:    "123",
 					Email: "some@example.com",
@@ -62,13 +63,13 @@ func TestService_SendPostEmail(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		mockClient := mockMailer.NewMockMailjetInterface(t)
-		s := NewService("", "", &Options{})
+		s := NewService("", "", &types.Options{})
 		s.client = mockClient
 
 		mockClient.On("SendMailV31", mock.Anything).Return(&mailjet.ResultsV31{}, errors.New("error"))
 
-		err := s.SendPostEmail(&PostEmailSend{
-			To: []*Subscriber{
+		err := s.SendPostEmail(&types.PostEmailSend{
+			To: []*types.Subscriber{
 				{
 					ID:    "123",
 					Email: "some@example.com",

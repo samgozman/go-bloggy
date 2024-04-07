@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	mailer "github.com/samgozman/go-bloggy/internal/mailer"
+	types "github.com/samgozman/go-bloggy/internal/mailer/types"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -31,7 +31,7 @@ func (_m *MockServiceInterface) SendConfirmationEmail(to string, confirmationID 
 }
 
 // SendPostEmail provides a mock function with given fields: pe
-func (_m *MockServiceInterface) SendPostEmail(pe *mailer.PostEmailSend) error {
+func (_m *MockServiceInterface) SendPostEmail(pe *types.PostEmailSend) error {
 	ret := _m.Called(pe)
 
 	if len(ret) == 0 {
@@ -39,7 +39,7 @@ func (_m *MockServiceInterface) SendPostEmail(pe *mailer.PostEmailSend) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*mailer.PostEmailSend) error); ok {
+	if rf, ok := ret.Get(0).(func(*types.PostEmailSend) error); ok {
 		r0 = rf(pe)
 	} else {
 		r0 = ret.Error(0)

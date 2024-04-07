@@ -3,13 +3,14 @@ package mailer
 import (
 	"github.com/google/wire"
 	"github.com/samgozman/go-bloggy/internal/config"
+	"github.com/samgozman/go-bloggy/internal/mailer/types"
 )
 
 // Config is a struct that holds all the configuration for mailer.
 type Config struct {
 	PublicKey  string
 	PrivateKey string
-	Options    *Options
+	Options    *types.Options
 }
 
 // ProvideConfig is a wire provider function for mailer.Config.
@@ -17,7 +18,7 @@ func ProvideConfig(cfg *config.Config) *Config {
 	return &Config{
 		PublicKey:  cfg.MailerJet.PublicKey,
 		PrivateKey: cfg.MailerJet.PrivateKey,
-		Options: &Options{
+		Options: &types.Options{
 			FromEmail:                    cfg.MailerJet.FromEmail,
 			FromName:                     cfg.MailerJet.FromName,
 			ConfirmationTemplateID:       cfg.MailerJet.ConfirmationTemplateID,
@@ -38,5 +39,5 @@ func ProvideService(cfg *Config) *Service {
 var ProviderSet = wire.NewSet(
 	ProvideConfig,
 	ProvideService,
-	wire.Bind(new(ServiceInterface), new(*Service)),
+	wire.Bind(new(types.ServiceInterface), new(*Service)),
 )
