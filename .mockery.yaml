@@ -1,0 +1,38 @@
+with-expecter: false
+packages:
+  github.com/samgozman/go-bloggy/internal/captcha:
+    interfaces:
+      ClientInterface:
+        config:
+          dir: mocks/captcha
+          exported: true
+          outpkg: mocks
+          structname: Client
+          disable-version-string: true
+  github.com/samgozman/go-bloggy/internal/github:
+    interfaces:
+      ServiceInterface:
+        config:
+          dir: mocks/github
+          exported: true
+          outpkg: mocks
+          structname: Service
+          disable-version-string: true
+  github.com/samgozman/go-bloggy/internal/mailer:
+    interfaces:
+      ServiceInterface:
+        config:
+          dir: mocks/mailer
+          exported: true
+          outpkg: mocks
+          structname: Service
+          disable-version-string: true
+  github.com/samgozman/go-bloggy/internal/jwt:
+    interfaces:
+      ServiceInterface:
+        config:
+          dir: mocks/jwt
+          exported: true
+          outpkg: mocks
+          structname: Service
+          disable-version-string: true
