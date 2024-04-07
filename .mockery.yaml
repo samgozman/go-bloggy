@@ -43,3 +43,26 @@ packages:
           outpkg: mocks
           structname: Service
           disable-version-string: true
+  github.com/samgozman/go-bloggy/internal/db/models:
+    interfaces:
+      UserRepositoryInterface:
+        config:
+          dir: mocks/db/models
+          exported: true
+          outpkg: mocks
+          structname: UserRepository
+          disable-version-string: true
+      PostRepositoryInterface:
+        config:
+          dir: mocks/db/models
+          exported: true
+          outpkg: mocks
+          structname: PostRepository
+          disable-version-string: true
+      SubscriberRepositoryInterface:
+        config:
+          dir: mocks/db/models
+          exported: true
+          outpkg: mocks
+          structname: SubscriberRepository
+          disable-version-string: true

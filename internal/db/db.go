@@ -104,26 +104,3 @@ func connectToPG(dsn string) (*gorm.DB, error) {
 
 	return db, nil
 }
-
-// InitDatabase creates a new database connection & migrates the schema.
-func InitDatabase(dsn string) (*Database, error) {
-	conn, err := connectToPG(dsn)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToConnectDatabase, err)
-	}
-
-	// Migrate the schema
-	// TODO: add external migrator, do not use AutoMigrate in production
-	err = conn.AutoMigrate(&models.User{}, &models.Post{}, &models.Subscriber{})
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToMigrateDatabase, err)
-	}
-
-	m := NewModels(
-		models.NewUserRepository(conn),
-		models.NewPostRepository(conn),
-		models.NewSubscribersRepository(conn),
-	)
-
-	return NewDatabase(conn, m), nil
-}
