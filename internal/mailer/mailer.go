@@ -6,11 +6,11 @@ import (
 )
 
 type Service struct {
-	client  Mailer
+	client  MailjetInterface
 	options *Options
 }
 
-type Mailer interface {
+type MailjetInterface interface {
 	SendMailV31(data *mailjet.MessagesV31, options ...mailjet.RequestOptions) (*mailjet.ResultsV31, error)
 }
 

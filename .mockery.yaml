@@ -27,6 +27,13 @@ packages:
           outpkg: mocks
           structname: Service
           disable-version-string: true
+      MailjetInterface:
+        config:
+          dir: mocks/mailer
+          exported: true
+          outpkg: mocks
+          structname: Mailjet
+          disable-version-string: true
   github.com/samgozman/go-bloggy/internal/jwt:
     interfaces:
       ServiceInterface:

@@ -4,23 +4,15 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	jwtMock "github.com/samgozman/go-bloggy/mocks/jwt"
 )
 
-type mockJwtService struct {
-	mock.Mock
-}
-
-func (m *mockJwtService) ParseTokenString(tokenString string) (string, error) {
-	args := m.Called(tokenString)
-	return args.String(0), args.Error(1)
-}
-
 func Test_JWTAuth(t *testing.T) {
-	mockJwtService := new(mockJwtService)
+	mockJwtService := jwtMock.NewMockServiceInterface(t)
 	middleware := JWTAuth(mockJwtService)
 
 	t.Run("valid token", func(t *testing.T) {

@@ -6,20 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
+
+	mockMailer "github.com/samgozman/go-bloggy/mocks/mailer"
 )
-
-type MockMailjetClient struct {
-	mock.Mock
-}
-
-func (m *MockMailjetClient) SendMailV31(data *mailjet.MessagesV31, _options ...mailjet.RequestOptions) (*mailjet.ResultsV31, error) {
-	args := m.Called(data)
-	return args.Get(0).(*mailjet.ResultsV31), args.Error(1) //nolint:wrapcheck
-}
 
 func TestService_SendConfirmationEmail(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		mockClient := new(MockMailjetClient)
+		mockClient := mockMailer.NewMockMailjetInterface(t)
 		s := NewService("", "", &Options{})
 		s.client = mockClient
 
@@ -31,7 +24,7 @@ func TestService_SendConfirmationEmail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mockClient := new(MockMailjetClient)
+		mockClient := mockMailer.NewMockMailjetInterface(t)
 		s := NewService("", "", &Options{})
 		s.client = mockClient
 
@@ -46,7 +39,7 @@ func TestService_SendConfirmationEmail(t *testing.T) {
 
 func TestService_SendPostEmail(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		mockClient := new(MockMailjetClient)
+		mockClient := mockMailer.NewMockMailjetInterface(t)
 		s := NewService("", "", &Options{})
 		s.client = mockClient
 
@@ -68,7 +61,7 @@ func TestService_SendPostEmail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mockClient := new(MockMailjetClient)
+		mockClient := mockMailer.NewMockMailjetInterface(t)
 		s := NewService("", "", &Options{})
 		s.client = mockClient
 
