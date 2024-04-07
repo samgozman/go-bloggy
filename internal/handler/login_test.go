@@ -24,7 +24,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, mockGithubService, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
 			ID:    adminExternalID,
@@ -65,7 +65,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		assert.Equal(t, "someToken", body.Token)
 
 		// Check if the user was created in the database
-		dbUser, err := conn.Models.Users.GetByExternalID(context.Background(), ghUserID)
+		dbUser, err := conn.Models().Users().GetByExternalID(context.Background(), ghUserID)
 		assert.NoError(t, err)
 		assert.Equal(t, ghUserID, dbUser.ExternalID)
 		assert.Equal(t, ghUser.Login, dbUser.Login)
@@ -73,7 +73,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("should work for existing user", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, mockGithubService, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
 			ID:    adminExternalID,
@@ -94,7 +94,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 			Return("someToken", nil)
 
 		// Create user in the database
-		err := conn.Models.Users.Upsert(context.Background(), &models.User{
+		err := conn.Models().Users().Upsert(context.Background(), &models.User{
 			ExternalID: ghUserID,
 			Login:      ghUser.Login,
 			AuthMethod: models.GitHubAuthMethod,
@@ -124,7 +124,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("ValidationError", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
 			Code: "", // empty code
@@ -148,7 +148,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("GitHub ExchangeCodeForToken error", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, mockGithubService, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, mockGithubService, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -177,7 +177,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("GitHub GetUserInfo error", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, mockGithubService, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, mockGithubService, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -210,7 +210,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("Invalid JSON", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, _, _, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		res := testutil.NewRequest().
 			Post("/login/github/authorize").
@@ -230,7 +230,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("JWTService CreateTokenString error", func(t *testing.T) {
 		adminExternalID := rand.Int()
-		e, mockGithubService, mockJwtService, _, _ := registerHandlers(conn, []string{strconv.Itoa(adminExternalID)})
+		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -271,7 +271,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 	t.Run("Auth forbidden for non-admin", func(t *testing.T) {
 		// Fake admin id
-		e, mockGithubService, _, _, _ := registerHandlers(conn, []string{"000000"})
+		e, mockGithubService, _, _, _ := registerHandlers(t, conn, []string{"000000"})
 
 		mockGithubService.
 			On("ExchangeCodeForToken", mock.Anything, "123").
@@ -307,7 +307,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 
 func Test_PostLoginRefresh(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(nil, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -332,7 +332,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("Forbidden Authorization header is required", func(t *testing.T) {
-		e, _, _, _, _ := registerHandlers(nil, nil)
+		e, _, _, _, _ := registerHandlers(t, nil, nil)
 
 		res := testutil.NewRequest().Post("/login/refresh").GoWithHTTPHandler(t, e)
 
@@ -347,7 +347,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("JWTService ParseTokenString error", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(nil, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").
@@ -370,7 +370,7 @@ func Test_PostLoginRefresh(t *testing.T) {
 	})
 
 	t.Run("CreateTokenString error", func(t *testing.T) {
-		e, _, mockJwtService, _, _ := registerHandlers(nil, nil)
+		e, _, mockJwtService, _, _ := registerHandlers(t, nil, nil)
 
 		mockJwtService.
 			On("ParseTokenString", "token").

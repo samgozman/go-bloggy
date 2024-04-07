@@ -22,7 +22,7 @@ func TestPostDB(t *testing.T) {
 	err = db.WithContext(context.Background()).Create(user).Error
 	assert.NoError(t, err)
 
-	postDB := NewPostDB(db)
+	postDB := NewPostRepository(db)
 
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new post", func(t *testing.T) {
@@ -387,7 +387,7 @@ func TestPostDB_Count(t *testing.T) {
 	err = db.WithContext(context.Background()).Create(user).Error
 	assert.NoError(t, err)
 
-	postDB := NewPostDB(db)
+	postDB := NewPostRepository(db)
 
 	t.Run("return count of all posts", func(t *testing.T) {
 		for range 5 {

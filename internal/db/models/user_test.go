@@ -53,7 +53,7 @@ func TestUserDB(t *testing.T) {
 	db, e := NewTestDB("file::memory:")
 	assert.NoError(t, e)
 
-	userDB := NewUserDB(db)
+	userDB := NewUserRepository(db)
 
 	t.Run("Upsert", func(t *testing.T) {
 		t.Run("should create user", func(t *testing.T) {

@@ -12,7 +12,7 @@ test:
 
 # Test go files with coverage report
 test-coverage:
-	go test -v ./... -race -coverprofile=coverage.txt -covermode=atomic
+	go test -v ./... -race -coverprofile=coverage.out -covermode=atomic
 
 # Generate go files (api)
 generate:

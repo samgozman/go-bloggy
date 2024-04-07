@@ -13,20 +13,25 @@ import (
 
 // Service holds GitHub OAuth configuration.
 type Service struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	OAuthAPIURL  string `json:"oauth_api_url"`
-	UserAPIURL   string `json:"user_api_url"`
+	clientID     string
+	clientSecret string
+	oAuthAPIURL  string
+	userAPIURL   string
 }
 
 // NewService creates a new GitHub Service instance with the given client ID and client secret.
 func NewService(clientID, clientSecret string) *Service {
 	return &Service{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		OAuthAPIURL:  "https://github.com/login/oauth/access_token",
-		UserAPIURL:   "https://api.github.com/user",
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		oAuthAPIURL:  "https://github.com/login/oauth/access_token",
+		userAPIURL:   "https://api.github.com/user",
 	}
+}
+
+type ServiceInterface interface {
+	ExchangeCodeForToken(ctx context.Context, code string) (string, error)
+	GetUserInfo(ctx context.Context, token string) (*UserInfo, error)
 }
 
 // ExchangeCodeForToken exchanges the given code from
@@ -34,15 +39,15 @@ func NewService(clientID, clientSecret string) *Service {
 // for an access token.
 func (g *Service) ExchangeCodeForToken(ctx context.Context, code string) (string, error) {
 	formData := url.Values{
-		"client_id":     {g.ClientID},
-		"client_secret": {g.ClientSecret},
+		"client_id":     {g.clientID},
+		"client_secret": {g.clientSecret},
 		"code":          {code},
 	}
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"POST",
-		g.OAuthAPIURL,
+		g.oAuthAPIURL,
 		strings.NewReader(formData.Encode()),
 	)
 	if err != nil {
@@ -92,7 +97,7 @@ func (g *Service) GetUserInfo(ctx context.Context, token string) (*UserInfo, err
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"GET",
-		g.UserAPIURL,
+		g.userAPIURL,
 		nil,
 	)
 	if err != nil {

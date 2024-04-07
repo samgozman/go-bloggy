@@ -24,7 +24,7 @@ go.work
 .idea/
 
 # Output of the go coverage tool
-coverage.txt
+coverage.out
 
 # Package files
 .env

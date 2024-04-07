@@ -20,7 +20,7 @@ func Test_PostSubscribers(t *testing.T) {
 	}
 
 	t.Run("Created", func(t *testing.T) {
-		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "some@email.com",
@@ -47,7 +47,7 @@ func Test_PostSubscribers(t *testing.T) {
 
 		// Check that the subscription was created
 		var emails []string
-		err := conn.Conn.Model(&models.Subscriber{}).
+		err := conn.GetConn().Model(&models.Subscriber{}).
 			Where("email = ?", "some@email.com").
 			Pluck("email", &emails).Error
 		assert.NoError(t, err)
@@ -57,7 +57,7 @@ func Test_PostSubscribers(t *testing.T) {
 	})
 
 	t.Run("BadRequest", func(t *testing.T) {
-		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, mockMailerService, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.CreateSubscriberRequest{
 			Email:   "invalid-email",
@@ -90,14 +90,14 @@ func Test_DeleteSubscribers(t *testing.T) {
 	}
 
 	t.Run("NoContent", func(t *testing.T) {
-		e, _, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email: "some@email.space",
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
@@ -113,13 +113,13 @@ func Test_DeleteSubscribers(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, res.Code())
 
 		// Check that the subscription was deleted
-		_, err = conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
+		_, err = conn.Models().Subscribers().GetByID(context.Background(), sub.ID.String())
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, models.ErrNotFound)
 	})
 
 	t.Run("StatusBadRequest ", func(t *testing.T) {
-		e, _, _, _, _ := registerHandlers(conn, nil)
+		e, _, _, _, _ := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.UnsubscribeRequest{
 			SubscriptionId: "f87c5cc0-ec7b-41eb-8d23-0abe0938efd2",
@@ -148,7 +148,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	}
 
 	t.Run("OK - NoContent", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some@email.space",
@@ -156,7 +156,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
@@ -178,7 +178,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.Code())
 
 		// Check that the subscription was confirmed
-		retrievedSubscription, err := conn.Models.Subscribers.GetByID(context.Background(), sub.ID.String())
+		retrievedSubscription, err := conn.Models().Subscribers().GetByID(context.Background(), sub.ID.String())
 		assert.NoError(t, err)
 		assert.True(t, retrievedSubscription.IsConfirmed)
 
@@ -186,7 +186,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	})
 
 	t.Run("StatusBadRequest - not found", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
 			Token:   "ce247e1d-a371-42fc-b36b-26b566c0096c",
@@ -210,7 +210,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	})
 
 	t.Run("OK - if already confirmed", func(t *testing.T) {
-		e, _, _, _, mockHcaptchaService := registerHandlers(conn, nil)
+		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
 		sub := models.Subscriber{
 			Email:       "some2@email.space",
@@ -218,7 +218,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 		}
 
 		// Create a subscription
-		err := conn.Models.Subscribers.Create(context.Background(), &sub)
+		err := conn.Models().Subscribers().Create(context.Background(), &sub)
 		assert.NoError(t, err)
 
 		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{

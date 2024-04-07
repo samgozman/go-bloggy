@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"github.com/samgozman/go-bloggy/internal/mailer"
+	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 	"net/http"
 	"regexp"
 	"strings"
@@ -40,7 +40,7 @@ func (h *Handler) PostPosts(ctx echo.Context) error {
 		})
 	}
 
-	user, err := h.db.Models.Users.GetByExternalID(ctx.Request().Context(), externalUserID)
+	user, err := h.db.Models().Users().GetByExternalID(ctx.Request().Context(), externalUserID)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, api.RequestError{
 			Code:    errGetUser,
@@ -65,7 +65,7 @@ func (h *Handler) PostPosts(ctx echo.Context) error {
 		Keywords:    keywords,
 	}
 
-	if err := h.db.Models.Posts.Create(ctx.Request().Context(), &post); err != nil {
+	if err := h.db.Models().Posts().Create(ctx.Request().Context(), &post); err != nil {
 		switch {
 		case errors.Is(err, models.ErrDuplicate):
 			return ctx.JSON(http.StatusConflict, api.RequestError{
@@ -107,7 +107,7 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 		})
 	}
 
-	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	post, err := h.db.Models().Posts().GetBySlug(ctx.Request().Context(), slug)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
@@ -160,7 +160,7 @@ func (h *Handler) GetPosts(ctx echo.Context, params api.GetPostsParams) error {
 		})
 	}
 
-	count, err := h.db.Models.Posts.Count(ctx.Request().Context())
+	count, err := h.db.Models().Posts().Count(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errGetPostsCount,
@@ -168,7 +168,7 @@ func (h *Handler) GetPosts(ctx echo.Context, params api.GetPostsParams) error {
 		})
 	}
 
-	posts, err := h.db.Models.Posts.FindAll(ctx.Request().Context(), page, limit)
+	posts, err := h.db.Models().Posts().FindAll(ctx.Request().Context(), page, limit)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errGetPosts,
@@ -217,7 +217,7 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 		})
 	}
 
-	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	post, err := h.db.Models().Posts().GetBySlug(ctx.Request().Context(), slug)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
@@ -239,7 +239,7 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 		post.Keywords = ""
 	}
 
-	if err := h.db.Models.Posts.Update(ctx.Request().Context(), post); err != nil {
+	if err := h.db.Models().Posts().Update(ctx.Request().Context(), post); err != nil {
 		switch {
 		case errors.Is(err, models.ErrDuplicate):
 			return ctx.JSON(http.StatusConflict, api.RequestError{
@@ -274,7 +274,7 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 }
 
 func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
-	post, err := h.db.Models.Posts.GetBySlug(ctx.Request().Context(), slug)
+	post, err := h.db.Models().Posts().GetBySlug(ctx.Request().Context(), slug)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
@@ -291,7 +291,7 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 	}
 
 	// Get subscribers
-	subs, err := h.db.Models.Subscribers.GetConfirmed(ctx.Request().Context())
+	subs, err := h.db.Models().Subscribers().GetConfirmed(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errGetSubscription,
@@ -331,7 +331,7 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 
 	// Update post
 	post.SentToSubscribersAt = time.Now()
-	err = h.db.Models.Posts.Update(ctx.Request().Context(), post)
+	err = h.db.Models().Posts().Update(ctx.Request().Context(), post)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, api.RequestError{
 			Code:    errUpdatePost,

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"os"
@@ -6,14 +6,19 @@ import (
 	"strings"
 )
 
+type DSN string
+type JWTSecretKey string
+type HCaptchaSecret string
+type AdminsExternalIDs []string
+
 type Config struct {
-	GithubClientID     string   // GithubClientID is the client ID for GitHub OAuth.
-	GithubClientSecret string   // GithubClientSecret is the secret key for GitHub OAuth.
-	JWTSecretKey       string   // JWTSecretKey is the secret key for JWT token creation.
-	Port               string   // Port for server to listen on.
-	DSN                string   // DSN - Database Source Name for Postgres.
-	AdminsExternalIDs  []string // AdminsExternalIDs list of admins allowed to auth, separated by comma.
-	HCaptchaSecret     string   // HCaptchaSecret is the secret key for HCaptcha verification.
+	GithubClientID     string            // GithubClientID is the client ID for GitHub OAuth.
+	GithubClientSecret string            // GithubClientSecret is the secret key for GitHub OAuth.
+	JWTSecretKey       JWTSecretKey      // JWTSecretKey is the secret key for JWT token creation.
+	Port               string            // Port for server to listen on.
+	DSN                DSN               // DSN - Database Source Name for Postgres.
+	AdminsExternalIDs  AdminsExternalIDs // AdminsExternalIDs list of admins allowed to auth, separated by comma.
+	HCaptchaSecret     HCaptchaSecret    // HCaptchaSecret is the secret key for HCaptcha verification.
 	MailerJet          MailerConfig
 }
 
@@ -32,10 +37,10 @@ type MailerConfig struct {
 // NewConfigFromEnv creates a new Config.
 func NewConfigFromEnv() *Config {
 	admins := getEnvOrPanic("ADMINS_EXTERNAL_IDS")
-	var adminsList []string
+	var adminsExternalIDs AdminsExternalIDs
 	if admins != "" {
 		// admins is a comma-separated list of external IDs
-		adminsList = strings.Split(admins, ",")
+		adminsExternalIDs = strings.Split(admins, ",")
 	}
 
 	confirmationTemplateID, _ := strconv.Atoi(getEnvOrPanic("MAILJET_CONFIRMATION_TEMPLATE_ID"))
@@ -44,11 +49,11 @@ func NewConfigFromEnv() *Config {
 	return &Config{
 		GithubClientID:     getEnvOrPanic("GITHUB_CLIENT_ID"),
 		GithubClientSecret: getEnvOrPanic("GITHUB_CLIENT_SECRET"),
-		JWTSecretKey:       getEnvOrPanic("JWT_SECRET_KEY"),
+		JWTSecretKey:       JWTSecretKey(getEnvOrPanic("JWT_SECRET_KEY")),
 		Port:               getEnvOrPanic("PORT"),
-		DSN:                getEnvOrPanic("DSN"),
-		AdminsExternalIDs:  adminsList,
-		HCaptchaSecret:     getEnvOrPanic("HCAPTCHA_SECRET"),
+		DSN:                DSN(getEnvOrPanic("DSN")),
+		AdminsExternalIDs:  adminsExternalIDs,
+		HCaptchaSecret:     HCaptchaSecret(getEnvOrPanic("HCAPTCHA_SECRET")),
 		MailerJet: MailerConfig{
 			PublicKey:                    getEnvOrPanic("MAILJET_PUBLIC_KEY"),
 			PrivateKey:                   getEnvOrPanic("MAILJET_PRIVATE_KEY"),

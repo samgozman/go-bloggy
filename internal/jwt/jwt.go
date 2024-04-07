@@ -24,6 +24,11 @@ func NewService(signKey string) *Service {
 	}
 }
 
+type ServiceInterface interface {
+	CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error)
+	ParseTokenString(tokenString string) (externalUserID string, err error)
+}
+
 // CreateTokenString creates a JWT token string with the given sign key and expiration time.
 func (s *Service) CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error) {
 	if expiresAt.Before(time.Now()) {

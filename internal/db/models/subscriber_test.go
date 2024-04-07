@@ -11,7 +11,7 @@ func TestSubscribersDB(t *testing.T) {
 	db, err := NewTestDB("file::memory:")
 	assert.NoError(t, err)
 
-	subscriptionDB := NewSubscribersDB(db)
+	subscriptionDB := NewSubscribersRepository(db)
 
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new subscription", func(t *testing.T) {

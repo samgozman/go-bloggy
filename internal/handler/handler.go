@@ -1,32 +1,44 @@
 package handler
 
 import (
-	"context"
-	"github.com/kataras/hcaptcha"
+	"github.com/google/wire"
+	oapi "github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/captcha"
+	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"
 	"github.com/samgozman/go-bloggy/internal/github"
-	"github.com/samgozman/go-bloggy/internal/mailer"
-	"time"
+	"github.com/samgozman/go-bloggy/internal/jwt"
+	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 )
+
+type Config struct {
+	AdminsExternalIDs config.AdminsExternalIDs
+}
 
 // Handler for the service API endpoints.
 type Handler struct {
-	githubService     githubService
-	jwtService        jwtService
-	hcaptchaService   hcaptchaService
+	githubService     github.ServiceInterface
+	jwtService        jwt.ServiceInterface
+	hcaptchaService   captcha.ClientInterface
 	db                *db.Database
-	mailerService     mailerService
+	mailerService     mailer.ServiceInterface
 	adminsExternalIDs []string
 }
 
-// NewHandler creates a new Handler.
-func NewHandler(
-	g githubService,
-	j jwtService,
+func ProvideConfig(cfg *config.Config) *Config {
+	return &Config{
+		AdminsExternalIDs: cfg.AdminsExternalIDs,
+	}
+}
+
+// ProvideHandler is a wire provider function that creates a new Handler.
+func ProvideHandler(
+	cfg *Config,
+	g github.ServiceInterface,
+	j jwt.ServiceInterface,
 	db *db.Database,
-	h hcaptchaService,
-	ms mailerService,
-	adminsExternalIDs []string,
+	h captcha.ClientInterface,
+	ms mailer.ServiceInterface,
 ) *Handler {
 	return &Handler{
 		githubService:     g,
@@ -34,26 +46,13 @@ func NewHandler(
 		db:                db,
 		hcaptchaService:   h,
 		mailerService:     ms,
-		adminsExternalIDs: adminsExternalIDs,
+		adminsExternalIDs: cfg.AdminsExternalIDs,
 	}
 }
 
-// githubService is an interface for the github.Service.
-type githubService interface {
-	ExchangeCodeForToken(ctx context.Context, code string) (string, error)
-	GetUserInfo(ctx context.Context, token string) (*github.UserInfo, error)
-}
-
-type jwtService interface {
-	CreateTokenString(userID string, expiresAt time.Time) (jwtToken string, err error)
-	ParseTokenString(tokenString string) (externalUserID string, err error)
-}
-
-type hcaptchaService interface {
-	VerifyToken(tkn string) (response hcaptcha.Response)
-}
-
-type mailerService interface {
-	SendConfirmationEmail(to, confirmationID string) error
-	SendPostEmail(pe *mailer.PostEmailSend) error
-}
+// ProviderSet is a wire provider set that includes all the providers for the handler package.
+var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
+	ProvideConfig,
+	ProvideHandler,
+	wire.Bind(new(oapi.ServerInterface), new(*Handler)),
+)
