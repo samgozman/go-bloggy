@@ -6,7 +6,9 @@ package main
 
 import (
 	"context"
+	_ "github.com/google/subcommands" //nolint:goimports // required by Wire
 	"github.com/google/wire"
+
 	"github.com/samgozman/go-bloggy/internal/captcha"
 	"github.com/samgozman/go-bloggy/internal/config"
 	"github.com/samgozman/go-bloggy/internal/db"

@@ -18,6 +18,10 @@ import (
 	"github.com/samgozman/go-bloggy/internal/server"
 )
 
+import (
+	_ "github.com/google/subcommands"
+)
+
 // Injectors from wire.go:
 
 func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
