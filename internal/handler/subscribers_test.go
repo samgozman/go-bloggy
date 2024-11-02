@@ -7,6 +7,7 @@ import (
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
+	testmodels "github.com/samgozman/go-bloggy/testutils/test-models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 )
 
 func Test_PostSubscribers(t *testing.T) {
-	conn, errDB := initDatabaseTest()
+	conn, errDB := testmodels.InitDatabaseWithModelsTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -84,7 +85,7 @@ func Test_PostSubscribers(t *testing.T) {
 }
 
 func Test_DeleteSubscribers(t *testing.T) {
-	conn, errDB := initDatabaseTest()
+	conn, errDB := testmodels.InitDatabaseWithModelsTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
@@ -142,7 +143,7 @@ func Test_DeleteSubscribers(t *testing.T) {
 }
 
 func Test_PostSubscribersConfirm(t *testing.T) {
-	conn, errDB := initDatabaseTest()
+	conn, errDB := testmodels.InitDatabaseWithModelsTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}

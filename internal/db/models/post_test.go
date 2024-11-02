@@ -3,13 +3,16 @@ package models
 import (
 	"context"
 	"github.com/google/uuid"
+	testdb "github.com/samgozman/go-bloggy/testutils/test-db"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 func TestPostDB(t *testing.T) {
-	db, err := NewTestDB("file::memory:")
+	conn, err := testdb.InitDatabaseTest()
+	assert.NoError(t, err)
+	err = conn.AutoMigrate(&User{}, &Post{})
 	assert.NoError(t, err)
 
 	// insert a user to db
@@ -18,11 +21,10 @@ func TestPostDB(t *testing.T) {
 		Login:      uuid.New().String(),
 		AuthMethod: GitHubAuthMethod,
 	}
-
-	err = db.WithContext(context.Background()).Create(user).Error
+	err = conn.WithContext(context.Background()).Create(user).Error
 	assert.NoError(t, err)
 
-	postDB := NewPostRepository(db)
+	postDB := NewPostRepository(conn)
 
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new post", func(t *testing.T) {
@@ -374,7 +376,9 @@ func TestPost_CountReadingTime(t *testing.T) {
 }
 
 func TestPostDB_Count(t *testing.T) {
-	db, err := NewTestDB("file::memory:")
+	conn, err := testdb.InitDatabaseTest()
+	assert.NoError(t, err)
+	err = conn.AutoMigrate(&User{}, &Post{})
 	assert.NoError(t, err)
 
 	// insert a user to db
@@ -384,10 +388,10 @@ func TestPostDB_Count(t *testing.T) {
 		AuthMethod: GitHubAuthMethod,
 	}
 
-	err = db.WithContext(context.Background()).Create(user).Error
+	err = conn.WithContext(context.Background()).Create(user).Error
 	assert.NoError(t, err)
 
-	postDB := NewPostRepository(db)
+	postDB := NewPostRepository(conn)
 
 	t.Run("return count of all posts", func(t *testing.T) {
 		for range 5 {

@@ -8,6 +8,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/internal/github"
+	testmodels "github.com/samgozman/go-bloggy/testutils/test-models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"math/rand/v2"
@@ -17,13 +18,13 @@ import (
 )
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
-	conn, errDB := initDatabaseTest()
+	conn, errDB := testmodels.InitDatabaseWithModelsTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
 
 	t.Run("OK", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
@@ -72,7 +73,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("should work for existing user", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		ghUser := &github.UserInfo{
@@ -123,7 +124,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		rb, _ := json.Marshal(api.GitHubAuthRequestBody{
@@ -147,7 +148,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub ExchangeCodeForToken error", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, mockGithubService, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
@@ -176,7 +177,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("GitHub GetUserInfo error", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, mockGithubService, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
@@ -209,7 +210,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, _, _, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		res := testutil.NewRequest().
@@ -229,7 +230,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 	})
 
 	t.Run("JWTService CreateTokenString error", func(t *testing.T) {
-		adminExternalID := rand.Int()
+		adminExternalID := rand.Int() //nolint:gosec
 		e, mockGithubService, mockJwtService, _, _ := registerHandlers(t, conn, []string{strconv.Itoa(adminExternalID)})
 
 		mockGithubService.
@@ -280,7 +281,7 @@ func Test_PostLoginGithubAuthorize(t *testing.T) {
 		mockGithubService.
 			On("GetUserInfo", mock.Anything, "someToken").
 			Return(&github.UserInfo{
-				ID:    rand.Int(),
+				ID:    rand.Int(), //nolint:gosec
 				Login: "testUser",
 			}, nil)
 
