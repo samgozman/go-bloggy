@@ -4,36 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	testdb "github.com/samgozman/go-bloggy/testutils/test-db"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"testing"
 	"time"
 )
-
-func NewTestDB(dsn string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
-
-	// Enable foreign key constraint enforcement in SQLite
-	sqliteDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get database connection: %w", err)
-	}
-	_, err = sqliteDB.Exec("PRAGMA foreign_keys = ON;")
-	if err != nil {
-		return nil, fmt.Errorf("failed to enable foreign key constraints: %w", err)
-	}
-
-	err = db.AutoMigrate(&User{}, &Post{}, &Subscriber{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to migrate: %w", err)
-	}
-
-	return db, nil
-}
 
 func testCreateUser(ctx context.Context, db *gorm.DB) (User, error) {
 	user := User{
@@ -50,10 +26,12 @@ func testCreateUser(ctx context.Context, db *gorm.DB) (User, error) {
 }
 
 func TestUserDB(t *testing.T) {
-	db, e := NewTestDB("file::memory:")
-	assert.NoError(t, e)
+	conn, err := testdb.InitDatabaseTest()
+	assert.NoError(t, err)
+	err = conn.AutoMigrate(&User{})
+	assert.NoError(t, err)
 
-	userDB := NewUserRepository(db)
+	userDB := NewUserRepository(conn)
 
 	t.Run("Upsert", func(t *testing.T) {
 		t.Run("should create user", func(t *testing.T) {

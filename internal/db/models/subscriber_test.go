@@ -3,15 +3,18 @@ package models
 import (
 	"context"
 	"github.com/google/uuid"
+	testdb "github.com/samgozman/go-bloggy/testutils/test-db"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSubscribersDB(t *testing.T) {
-	db, err := NewTestDB("file::memory:")
+	conn, err := testdb.InitDatabaseTest()
+	assert.NoError(t, err)
+	err = conn.AutoMigrate(&Subscriber{})
 	assert.NoError(t, err)
 
-	subscriptionDB := NewSubscribersRepository(db)
+	subscriptionDB := NewSubscribersRepository(conn)
 
 	t.Run("Create", func(t *testing.T) {
 		t.Run("create a new subscription", func(t *testing.T) {

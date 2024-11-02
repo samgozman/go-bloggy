@@ -42,7 +42,8 @@ func mapGormError(err error) error {
 
 	case errors.Is(err, gorm.ErrDuplicatedKey),
 		errors.Is(err, gorm.ErrForeignKeyViolated),
-		strings.Contains(err.Error(), "UNIQUE constraint failed"):
+		strings.Contains(err.Error(), "UNIQUE constraint failed"),
+		strings.Contains(err.Error(), "duplicate key value violates unique constraint"):
 		return fmt.Errorf("%w: %w", ErrDuplicate, err)
 
 	case errors.Is(err, gorm.ErrInvalidValue),

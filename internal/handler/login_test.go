@@ -8,6 +8,7 @@ import (
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	"github.com/samgozman/go-bloggy/internal/github"
+	testmodels "github.com/samgozman/go-bloggy/testutils/test-models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"math/rand/v2"
@@ -17,7 +18,7 @@ import (
 )
 
 func Test_PostLoginGithubAuthorize(t *testing.T) {
-	conn, errDB := initDatabaseTest()
+	conn, errDB := testmodels.InitDatabaseWithModelsTest()
 	if errDB != nil {
 		t.Fatal(errDB)
 	}
