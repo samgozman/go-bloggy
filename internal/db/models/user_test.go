@@ -74,7 +74,7 @@ func TestUserDB(t *testing.T) {
 			assert.Equal(t, u.Login, user.Login)
 			assert.Equal(t, u.AuthMethod, user.AuthMethod)
 			assert.Equal(t, u.CreatedAt.In(time.Local), user.CreatedAt.In(time.Local))
-			assert.NotEqual(t, u.UpdatedAt.In(time.Local), user.UpdatedAt.In(time.Local))
+			assert.NotEqual(t, u.UpdatedAt.Truncate(time.Microsecond), user.UpdatedAt.Truncate(time.Microsecond))
 		})
 
 		t.Run("should return error if user is invalid", func(t *testing.T) {
