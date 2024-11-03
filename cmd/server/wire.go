@@ -26,7 +26,7 @@ func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
 		jwt.ProviderSet,
 		captcha.ProviderSet,
 		mailer.ProviderSet,
-		server.ProvideServer,
+		server.ProviderSet,
 		handler.ProviderSet,
 
 		newServerApp,
