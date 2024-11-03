@@ -19,7 +19,8 @@ type Config struct {
 	DSN                DSN               // DSN - Database Source Name for Postgres.
 	AdminsExternalIDs  AdminsExternalIDs // AdminsExternalIDs list of admins allowed to auth, separated by comma.
 	HCaptchaSecret     HCaptchaSecret    // HCaptchaSecret is the secret key for HCaptcha verification.
-	MailerJet          MailerConfig
+	MailerJet          MailerConfig      // MailerJet is the configuration for Mailjet.
+	SentryDSN          string            // SentryDSN is the DSN for Sentry.
 }
 
 type MailerConfig struct {
@@ -65,6 +66,7 @@ func NewConfigFromEnv() *Config {
 			PostTemplateURLParam:         getEnvOrPanic("MAILJET_POST_TEMPLATE_URL_PARAM"),
 			UnsubscribeURLParam:          getEnvOrPanic("MAILJET_UNSUBSCRIBE_URL_PARAM"),
 		},
+		SentryDSN: getEnvOrPanic("SENTRY_DSN"),
 	}
 }
 

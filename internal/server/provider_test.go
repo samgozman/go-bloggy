@@ -13,7 +13,7 @@ func TestProvideServer(t *testing.T) {
 		jwtService := jwtMock.NewMockServiceInterface(t)
 
 		// Act
-		got := ProvideServer(jwtService)
+		got := ProvideServer(&Config{}, jwtService)
 
 		// Assert
 		assert.NotNil(t, got)

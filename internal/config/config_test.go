@@ -22,6 +22,7 @@ func TestNewConfigFromEnv(t *testing.T) {
 	t.Setenv("MAILJET_POST_TEMPLATE_ID", "2")
 	t.Setenv("MAILJET_POST_TEMPLATE_URL_PARAM", "test_post_template_url_param")
 	t.Setenv("MAILJET_UNSUBSCRIBE_URL_PARAM", "test_unsubscribe_url_param")
+	t.Setenv("SENTRY_DSN", "test_sentry_dsn")
 
 	config := NewConfigFromEnv()
 

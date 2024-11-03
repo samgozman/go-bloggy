@@ -25,9 +25,10 @@ import (
 // Injectors from wire.go:
 
 func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
+	serverConfig := server.ProvideConfig(cfg)
 	jwtSecretKey := jwt.ProvideJWTSecretKey(cfg)
 	service := jwt.ProvideService(jwtSecretKey)
-	echo := server.ProvideServer(service)
+	echo := server.ProvideServer(serverConfig, service)
 	handlerConfig := handler.ProvideConfig(cfg)
 	githubConfig := github.ProvideConfig(cfg)
 	githubService := github.ProvideService(githubConfig)
@@ -42,10 +43,10 @@ func initApp(ctx context.Context, cfg *config.Config) (*serverApp, error) {
 		return nil, err
 	}
 	hCaptchaSecret := captcha.ProvideHCaptchaSecret(cfg)
-	client := captcha.ProvideClient(hCaptchaSecret)
+	v := captcha.ProvideClient(hCaptchaSecret)
 	mailerConfig := mailer.ProvideConfig(cfg)
 	mailerService := mailer.ProvideService(mailerConfig)
-	handlerHandler := handler.ProvideHandler(handlerConfig, githubService, service, database, client, mailerService)
+	handlerHandler := handler.ProvideHandler(handlerConfig, githubService, service, database, v, mailerService)
 	mainServerApp := newServerApp(echo, handlerHandler)
 	return mainServerApp, nil
 }

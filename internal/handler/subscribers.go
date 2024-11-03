@@ -3,6 +3,8 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"github.com/getsentry/sentry-go"
+	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
@@ -96,7 +98,14 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 		})
 	}
 
-	// TODO: Log req.Reason for unsubscribing in Sentry
+	if hub := sentryecho.GetHubFromContext(ctx); hub != nil {
+		hub.WithScope(func(scope *sentry.Scope) {
+			scope.SetExtra("reason", req.Reason)
+			scope.SetExtra("subscription_id", req.SubscriptionId)
+			scope.SetLevel(sentry.LevelWarning)
+			hub.CaptureMessage(fmt.Sprintf("User unsubscribed: %v", req.SubscriptionId))
+		})
+	}
 
 	return ctx.NoContent(http.StatusNoContent)
 }
