@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log"
+
 	"github.com/labstack/echo/v4"
 	oapi "github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/config"
@@ -37,5 +39,7 @@ func main() {
 
 	oapi.RegisterHandlers(app.Server, app.Handler)
 
-	app.Server.Logger.Fatal(app.Server.Start(":" + cfg.Port))
+	if err := app.Server.Start(":" + cfg.Port); err != nil {
+		log.Fatal(err)
+	}
 }

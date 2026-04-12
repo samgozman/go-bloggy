@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/labstack/echo/v4"
 	"testing"
+
+	"github.com/labstack/echo/v4"
 
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/config"

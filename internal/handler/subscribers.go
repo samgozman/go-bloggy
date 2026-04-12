@@ -3,13 +3,13 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"regexp"
+
 	"github.com/getsentry/sentry-go"
-	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
-	"net/http"
-	"regexp"
 )
 
 func (h *Handler) PostSubscribers(ctx echo.Context) error {
@@ -98,7 +98,7 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 		})
 	}
 
-	if hub := sentryecho.GetHubFromContext(ctx); hub != nil {
+	if hub := sentry.GetHubFromContext(ctx.Request().Context()); hub != nil {
 		hub.WithScope(func(scope *sentry.Scope) {
 			scope.SetExtra("reason", req.Reason)
 			scope.SetExtra("subscription_id", req.SubscriptionId)

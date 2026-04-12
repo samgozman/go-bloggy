@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/getsentry/sentry-go"
-	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/google/wire"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -49,7 +50,21 @@ func ProvideServer(cfg *Config, jwtService jwt.ServiceInterface) *echo.Echo {
 	server.Use(middleware.Recover())
 
 	// Add the Sentry middleware
-	server.Use(sentryecho.New(sentryecho.Options{}))
+	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			hub := sentry.CurrentHub().Clone()
+			hub.Scope().SetRequest(c.Request())
+			ctx := sentry.SetHubOnContext(c.Request().Context(), hub)
+			c.SetRequest(c.Request().WithContext(ctx))
+			defer func() {
+				if err := recover(); err != nil {
+					hub.RecoverWithContext(c.Request().Context(), err)
+					c.Error(echo.NewHTTPError(http.StatusInternalServerError))
+				}
+			}()
+			return next(c)
+		}
+	})
 
 	return server
 }

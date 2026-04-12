@@ -1,12 +1,14 @@
 package middlewares
 
 import (
+	"errors"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 
 	jwtMock "github.com/samgozman/go-bloggy/mocks/jwt"
 )
@@ -33,7 +35,7 @@ func Test_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("invalid token", func(t *testing.T) {
-		mockJwtService.On("ParseTokenString", "invalidToken").Return("", echo.ErrUnauthorized)
+		mockJwtService.On("ParseTokenString", "invalidToken").Return("", errors.New("unauthorized"))
 
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		req.Header.Set("Authorization", "Bearer invalidToken")

@@ -3,19 +3,18 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"net/http"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
 	"github.com/samgozman/go-bloggy/internal/db/models"
 	testmodels "github.com/samgozman/go-bloggy/testutils/test-models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"strconv"
-	"testing"
-	"time"
 )
 
 const jwtToken = "jwtToken"
@@ -112,7 +111,7 @@ func Test_PostPosts(t *testing.T) {
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errRequestBodyBinding, body.Code)
-		assert.Equal(t, body.Message, fmt.Sprintf("Error binding request body: %v", echo.ErrUnsupportedMediaType.Message))
+		assert.Equal(t, "Error binding request body: Unsupported Media Type", body.Message)
 	})
 
 	t.Run("400 - errGetUser", func(t *testing.T) {
@@ -556,7 +555,7 @@ func TestHandler_PutPostsSlug(t *testing.T) {
 		err := res.UnmarshalBodyToObject(&body)
 		assert.NoError(t, err)
 		assert.Equal(t, errRequestBodyBinding, body.Code)
-		assert.Equal(t, fmt.Sprintf("Error binding request body: %v", echo.ErrUnsupportedMediaType.Message), body.Message)
+		assert.Equal(t, "Error binding request body: Unsupported Media Type", body.Message)
 	})
 
 	t.Run("404 - errPostNotFound", func(t *testing.T) {
