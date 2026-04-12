@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-	"github.com/labstack/echo/v4"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 // JWTAuth is a middleware that checks for JWT token in the request and validates it.

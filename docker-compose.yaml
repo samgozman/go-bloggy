@@ -21,7 +21,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - go_bloggy_data:/var/lib/postgresql/data
+      - go_bloggy_data:/var/lib/postgresql
 
 volumes:
   go_bloggy_data:

@@ -1,14 +1,15 @@
 package handler
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/samgozman/go-bloggy/internal/api"
-	"github.com/samgozman/go-bloggy/internal/db/models"
 	"net/http"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/db/models"
 )
 
 // PostLoginGithubAuthorize handles the request to authorize with GitHub.

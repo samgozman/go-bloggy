@@ -1,4 +1,4 @@
-FROM golang:1.23.2-alpine AS builder
+FROM golang:1.26.2-alpine AS builder
 RUN apk add --no-cache gcc g++
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -7,7 +7,7 @@ COPY . .
 WORKDIR /app/cmd/server
 RUN CGO_ENABLED=1 GOOS=linux go build -o bloggy
 
-FROM alpine:3.19
+FROM alpine:3.23
 
 # Create a non-root
 RUN adduser -D noroot && mkdir -p /etc/sudoers.d \

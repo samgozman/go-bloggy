@@ -3,14 +3,15 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/samgozman/go-bloggy/internal/api"
-	"github.com/samgozman/go-bloggy/internal/db/models"
-	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/samgozman/go-bloggy/internal/api"
+	"github.com/samgozman/go-bloggy/internal/db/models"
+	mailer "github.com/samgozman/go-bloggy/internal/mailer/types"
 )
 
 func (h *Handler) PostPosts(ctx echo.Context) error {

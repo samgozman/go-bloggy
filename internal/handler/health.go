@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/samgozman/go-bloggy/internal/api"
-	"net/http"
 )
 
 // GetHealth returns health status of the service.

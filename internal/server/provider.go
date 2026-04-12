@@ -2,8 +2,10 @@ package server
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/getsentry/sentry-go"
-	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/google/wire"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -34,7 +36,16 @@ func ProvideServer(cfg *Config, jwtService jwt.ServiceInterface) *echo.Echo {
 	}
 
 	server := echo.New()
-	server.Use(middleware.Logger())
+	server.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogMethod:  true,
+		LogURI:     true,
+		LogStatus:  true,
+		LogLatency: true,
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+			log.Printf("method=%s, uri=%s, status=%d, latency=%v", v.Method, v.URI, v.Status, v.Latency)
+			return nil
+		},
+	}))
 	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// TODO: Pass allowed origins from cfg
 		AllowOrigins: []string{"*"},
@@ -49,7 +60,21 @@ func ProvideServer(cfg *Config, jwtService jwt.ServiceInterface) *echo.Echo {
 	server.Use(middleware.Recover())
 
 	// Add the Sentry middleware
-	server.Use(sentryecho.New(sentryecho.Options{}))
+	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			hub := sentry.CurrentHub().Clone()
+			hub.Scope().SetRequest(c.Request())
+			ctx := sentry.SetHubOnContext(c.Request().Context(), hub)
+			c.SetRequest(c.Request().WithContext(ctx))
+			defer func() {
+				if err := recover(); err != nil {
+					hub.RecoverWithContext(c.Request().Context(), err)
+					c.Error(echo.NewHTTPError(http.StatusInternalServerError))
+				}
+			}()
+			return next(c)
+		}
+	})
 
 	return server
 }

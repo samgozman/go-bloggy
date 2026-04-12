@@ -1,45 +1,60 @@
+version: "2"
 linters:
   enable:
-    - gofmt
-    - gocyclo
-    - bidichk
-    - decorder
-    - dupword
-    - errname
-    - errorlint
-    - godot
-    - gosec
-    - makezero
-    - misspell
-    - nilnil
-    - noctx
-    - bodyclose
-    - prealloc
-    - predeclared
-    - stylecheck
-    - tenv
-    - unparam
-    - whitespace
     - asasalint
     - asciicheck
+    - bidichk
+    - bodyclose
     - containedctx
     - contextcheck
+    - copyloopvar
+    - decorder
+    - dupword
     - durationcheck
+    - errname
+    - errorlint
     - gochecknoglobals
     - goconst
     - gocritic
+    - gocyclo
+    - godot
+    - gosec
+    - intrange
+    - makezero
+    - misspell
     - nestif
     - nilerr
+    - nilnil
+    - noctx
+    - prealloc
+    - predeclared
+    - staticcheck
+    - unparam
+    - whitespace
     - wrapcheck
-    - copyloopvar
-    - intrange
-
-linters-settings:
-  gocyclo:
-    min-complexity: 15
-  wrapcheck:
-    ignoreSigRegexps:
-      - 'func \(github\.com/labstack/echo/..\.Context\)\.*' # ignore echo.Context methods
-output:
-  print-issued-lines: false
-  print-linter-name: true
+  settings:
+    gocyclo:
+      min-complexity: 15
+    wrapcheck:
+      ignore-sig-regexps:
+        - func \(github\.com/labstack/echo/..\.Context\)\.*
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
