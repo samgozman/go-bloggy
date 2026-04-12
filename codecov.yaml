@@ -1,3 +1,4 @@
 ignore:
   - "**/*.gen.go" # ignore generated files from coverage
-  - "**/*/mocks/*" # ignore mocks
+  - "mocks/**" # ignore mocks
+  - "testutils/**" # ignore test utilities
