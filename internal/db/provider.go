@@ -40,7 +40,7 @@ func ProvideModels(conn *gorm.DB) *Models {
 }
 
 // ProvideDatabase provides a new database connection.
-func ProvideDatabase(conn *gorm.DB, models ModelsInterface) (*Database, error) {
+func ProvideDatabase(conn *gorm.DB, models *Models) (*Database, error) {
 	return NewDatabase(conn, models), nil
 }
 
@@ -50,6 +50,4 @@ var ProviderSet = wire.NewSet( //nolint:gochecknoglobals // required by Wire
 	ProvideConnection,
 	ProvideModels,
 	ProvideDatabase,
-	wire.Bind(new(DatabaseInterface), new(*Database)),
-	wire.Bind(new(ModelsInterface), new(*Models)),
 )

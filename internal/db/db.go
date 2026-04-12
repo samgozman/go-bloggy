@@ -12,15 +12,15 @@ import (
 
 // Models is a collection of all models in the database.
 type Models struct {
-	users       models.UserRepositoryInterface
-	posts       models.PostRepositoryInterface
-	subscribers models.SubscriberRepositoryInterface
+	users       *models.UserRepository
+	posts       *models.PostRepository
+	subscribers *models.SubscribersRepository
 }
 
 // NewModels creates a new Models instance.
-func NewModels(users models.UserRepositoryInterface,
-	posts models.PostRepositoryInterface,
-	subscribers models.SubscriberRepositoryInterface,
+func NewModels(users *models.UserRepository,
+	posts *models.PostRepository,
+	subscribers *models.SubscribersRepository,
 ) *Models {
 	return &Models{
 		users:       users,
@@ -30,34 +30,28 @@ func NewModels(users models.UserRepositoryInterface,
 }
 
 // Users returns the models.UserRepository.
-func (m *Models) Users() models.UserRepositoryInterface {
+func (m *Models) Users() *models.UserRepository {
 	return m.users
 }
 
 // Posts returns the models.PostRepository.
-func (m *Models) Posts() models.PostRepositoryInterface {
+func (m *Models) Posts() *models.PostRepository {
 	return m.posts
 }
 
-// Subscribers returns the models.SubscriberRepository.
-func (m *Models) Subscribers() models.SubscriberRepositoryInterface {
+// Subscribers returns the models.SubscribersRepository.
+func (m *Models) Subscribers() *models.SubscribersRepository {
 	return m.subscribers
-}
-
-type ModelsInterface interface {
-	Users() models.UserRepositoryInterface
-	Posts() models.PostRepositoryInterface
-	Subscribers() models.SubscriberRepositoryInterface
 }
 
 // Database is the database connection.
 type Database struct {
 	conn   *gorm.DB
-	models ModelsInterface
+	models *Models
 }
 
 // NewDatabase creates a new Database instance.
-func NewDatabase(conn *gorm.DB, models ModelsInterface) *Database {
+func NewDatabase(conn *gorm.DB, models *Models) *Database {
 	return &Database{
 		conn:   conn,
 		models: models,
@@ -65,19 +59,13 @@ func NewDatabase(conn *gorm.DB, models ModelsInterface) *Database {
 }
 
 // Models returns the database models.
-func (d *Database) Models() ModelsInterface {
+func (d *Database) Models() *Models {
 	return d.models
 }
 
 // GetConn returns the database connection.
 func (d *Database) GetConn() *gorm.DB {
 	return d.conn
-}
-
-// DatabaseInterface is the interface for the database.
-type DatabaseInterface interface {
-	GetConn() *gorm.DB
-	Models() ModelsInterface
 }
 
 // connectToPG connects to the Postgres database and retries until it is ready.

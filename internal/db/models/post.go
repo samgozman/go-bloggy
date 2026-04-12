@@ -97,15 +97,6 @@ func (p *Post) CountReadingTime() time.Duration {
 	return time.Duration(readingTimeInSeconds) * time.Second
 }
 
-// PostRepositoryInterface is the interface for the PostRepository.
-type PostRepositoryInterface interface {
-	Create(ctx context.Context, p *Post) error
-	GetBySlug(ctx context.Context, slug string) (*Post, error)
-	FindAll(ctx context.Context, page, perPage int) ([]*Post, error)
-	Update(ctx context.Context, p *Post) error
-	Count(ctx context.Context) (int64, error)
-}
-
 // Create creates a new Post.
 func (db *PostRepository) Create(ctx context.Context, p *Post) error {
 	err := db.conn.WithContext(ctx).Create(p).Error

@@ -64,13 +64,6 @@ func (u *User) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
-// UserRepositoryInterface is the interface for the UserRepository.
-type UserRepositoryInterface interface {
-	Upsert(ctx context.Context, user *User) error
-	GetByExternalID(ctx context.Context, externalID string) (*User, error)
-	GetByID(ctx context.Context, id int) (*User, error)
-}
-
 // Upsert inserts or updates the User data.
 func (db *UserRepository) Upsert(ctx context.Context, user *User) error {
 	err := db.conn.

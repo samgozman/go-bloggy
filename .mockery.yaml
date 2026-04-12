@@ -30,17 +30,3 @@ packages:
         config:
           dir: mocks/jwt
           pkgname: mocks
-  github.com/samgozman/go-bloggy/internal/db/models:
-    interfaces:
-      UserRepositoryInterface:
-        config:
-          dir: mocks/db/models
-          pkgname: mocks
-      PostRepositoryInterface:
-        config:
-          dir: mocks/db/models
-          pkgname: mocks
-      SubscriberRepositoryInterface:
-        config:
-          dir: mocks/db/models
-          pkgname: mocks

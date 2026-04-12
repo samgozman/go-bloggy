@@ -46,15 +46,6 @@ func (s *Subscriber) BeforeCreate(_ *gorm.DB) error {
 	return nil
 }
 
-// SubscriberRepositoryInterface is the interface for the subscriber repository.
-type SubscriberRepositoryInterface interface {
-	Create(ctx context.Context, s *Subscriber) error
-	Update(ctx context.Context, s *Subscriber) error
-	GetByID(ctx context.Context, id string) (*Subscriber, error)
-	GetConfirmed(ctx context.Context) ([]*Subscriber, error)
-	Delete(ctx context.Context, id string) error
-}
-
 func (db *SubscribersRepository) Create(ctx context.Context, s *Subscriber) error {
 	err := db.conn.WithContext(ctx).Create(s).Error
 	if err != nil {
