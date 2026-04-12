@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/labstack/echo/v4"
@@ -27,6 +28,12 @@ type serverApp struct {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	cfg := config.NewConfigFromEnv()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -34,12 +41,14 @@ func main() {
 
 	app, err := initApp(ctx, cfg)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	oapi.RegisterHandlers(app.Server, app.Handler)
 
 	if err := app.Server.Start(":" + cfg.Port); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("server error: %w", err)
 	}
+
+	return nil
 }

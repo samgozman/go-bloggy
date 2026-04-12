@@ -100,8 +100,10 @@ func (h *Handler) DeleteSubscribers(ctx echo.Context) error {
 
 	if hub := sentry.GetHubFromContext(ctx.Request().Context()); hub != nil {
 		hub.WithScope(func(scope *sentry.Scope) {
-			scope.SetExtra("reason", req.Reason)
-			scope.SetExtra("subscription_id", req.SubscriptionId)
+			scope.SetContext("unsubscribe", map[string]interface{}{
+				"reason":          req.Reason,
+				"subscription_id": req.SubscriptionId,
+			})
 			scope.SetLevel(sentry.LevelWarning)
 			hub.CaptureMessage(fmt.Sprintf("User unsubscribed: %v", req.SubscriptionId))
 		})

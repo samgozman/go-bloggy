@@ -3,6 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"testing"
+
 	"github.com/kataras/hcaptcha"
 	"github.com/oapi-codegen/testutil"
 	"github.com/samgozman/go-bloggy/internal/api"
@@ -10,8 +13,6 @@ import (
 	testmodels "github.com/samgozman/go-bloggy/testutils/test-models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"testing"
 )
 
 func Test_PostSubscribers(t *testing.T) {
@@ -189,7 +190,7 @@ func Test_PostSubscribersConfirm(t *testing.T) {
 	t.Run("StatusBadRequest - not found", func(t *testing.T) {
 		e, _, _, _, mockHcaptchaService := registerHandlers(t, conn, nil)
 
-		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{
+		rb, _ := json.Marshal(api.ConfirmSubscriberRequest{ //nolint:gosec // test UUID, not a real credential
 			Token:   "ce247e1d-a371-42fc-b36b-26b566c0096c",
 			Captcha: "some-captcha",
 		})

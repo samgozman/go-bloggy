@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -20,7 +21,7 @@ func Test_JWTAuth(t *testing.T) {
 	t.Run("valid token", func(t *testing.T) {
 		mockJwtService.On("ParseTokenString", "validToken").Return("SuperUserID", nil)
 
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
 		req.Header.Set("Authorization", "Bearer validToken")
 		rec := httptest.NewRecorder()
 		ctx := echo.New().NewContext(req, rec)
@@ -37,7 +38,7 @@ func Test_JWTAuth(t *testing.T) {
 	t.Run("invalid token", func(t *testing.T) {
 		mockJwtService.On("ParseTokenString", "invalidToken").Return("", errors.New("unauthorized"))
 
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
 		req.Header.Set("Authorization", "Bearer invalidToken")
 		rec := httptest.NewRecorder()
 		ctx := echo.New().NewContext(req, rec)
@@ -51,7 +52,7 @@ func Test_JWTAuth(t *testing.T) {
 	})
 
 	t.Run("no token", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
 		rec := httptest.NewRecorder()
 		ctx := echo.New().NewContext(req, rec)
 
@@ -65,7 +66,7 @@ func Test_JWTAuth(t *testing.T) {
 
 	t.Run("skip allowed paths", func(t *testing.T) {
 		t.Run("GET request", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 			rec := httptest.NewRecorder()
 			ctx := echo.New().NewContext(req, rec)
 
@@ -80,7 +81,7 @@ func Test_JWTAuth(t *testing.T) {
 		testCases := []string{"/login", "/subscribers"}
 		for _, path := range testCases {
 			t.Run(path, func(t *testing.T) {
-				req := httptest.NewRequest(http.MethodPost, path, nil)
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, path, nil)
 				rec := httptest.NewRecorder()
 				ctx := echo.New().NewContext(req, rec)
 

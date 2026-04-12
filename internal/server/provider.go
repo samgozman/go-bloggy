@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
@@ -35,7 +36,16 @@ func ProvideServer(cfg *Config, jwtService jwt.ServiceInterface) *echo.Echo {
 	}
 
 	server := echo.New()
-	server.Use(middleware.Logger())
+	server.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogMethod:  true,
+		LogURI:     true,
+		LogStatus:  true,
+		LogLatency: true,
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+			log.Printf("method=%s, uri=%s, status=%d, latency=%v", v.Method, v.URI, v.Status, v.Latency)
+			return nil
+		},
+	}))
 	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// TODO: Pass allowed origins from cfg
 		AllowOrigins: []string{"*"},
