@@ -13,7 +13,7 @@ require (
 	github.com/kataras/hcaptcha v0.0.2
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/mailjet/mailjet-apiv3-go/v4 v4.0.8
-	github.com/oapi-codegen/runtime v1.4.0
+	github.com/oapi-codegen/runtime v1.4.1
 	github.com/oapi-codegen/testutil v1.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.42.0
