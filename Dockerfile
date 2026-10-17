@@ -1,5 +1,9 @@
 FROM golang:1.26.2-alpine AS builder
-RUN apk add --no-cache gcc g++
+RUN apk add --no-cache gcc g++ git
+# Google's module storage intermittently returns 403 to some hosting IPs (e.g. Hetzner).
+# "|" falls through to the next source on any error; go.sum still verifies every module.
+ARG GOPROXY="https://proxy.golang.org|https://goproxy.cn|direct"
+ENV GOPROXY=$GOPROXY
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
