@@ -1,4 +1,4 @@
-FROM golang:1.26.2-alpine AS builder
+FROM golang:1.27.3-alpine AS builder
 RUN apk add --no-cache gcc g++ git
 # Google's module storage intermittently returns 403 to some hosting IPs (e.g. Hetzner).
 # "|" falls through to the next source on any error; go.sum still verifies every module.
@@ -11,7 +11,7 @@ COPY . .
 WORKDIR /app/cmd/server
 RUN CGO_ENABLED=1 GOOS=linux go build -o bloggy
 
-FROM alpine:3.23
+FROM alpine:3.24
 
 # Create a non-root
 RUN adduser -D noroot && mkdir -p /etc/sudoers.d \

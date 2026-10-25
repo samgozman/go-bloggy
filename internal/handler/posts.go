@@ -112,7 +112,7 @@ func (h *Handler) GetPostsSlug(ctx echo.Context, slug string) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
-			Message: "Post not found",
+			Message: msgPostNotFound,
 		})
 	}
 
@@ -222,7 +222,7 @@ func (h *Handler) PutPostsSlug(ctx echo.Context, slug string) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
-			Message: "Post not found",
+			Message: msgPostNotFound,
 		})
 	}
 
@@ -279,7 +279,7 @@ func (h *Handler) PostPostsSlugSendEmail(ctx echo.Context, slug string) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, api.RequestError{
 			Code:    errPostNotFound,
-			Message: "Post not found",
+			Message: msgPostNotFound,
 		})
 	}
 
