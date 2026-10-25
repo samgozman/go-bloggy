@@ -28,3 +28,5 @@ const (
 	errSendConfirmationEmail = "ERR_SEND_CONFIRMATION_EMAIL"
 	errSendPostEmail         = "ERR_SEND_POST_EMAIL"
 )
+
+const msgPostNotFound = "Post not found"
