@@ -22,7 +22,11 @@ func InitDatabaseTest() (*gorm.DB, error) {
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_DB":       "go_bloggy_test",
 		},
-		WaitingFor: wait.ForListeningPort("5432/tcp").WithStartupTimeout(5 * time.Minute),
+		// Postgres restarts once after initdb, so the port opens before it accepts connections.
+		WaitingFor: wait.ForAll(
+			wait.ForLog("database system is ready to accept connections").WithOccurrence(2),
+			wait.ForListeningPort("5432/tcp"),
+		).WithDeadline(5 * time.Minute),
 	}
 
 	postgresContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
